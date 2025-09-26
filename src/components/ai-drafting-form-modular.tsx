@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Form } from './ui/form';
 import { ScrollArea } from './ui/scroll-area';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { 
   AlertCircle, 
@@ -30,10 +30,12 @@ import { DurationTerminationSection } from './contract-form/duration-termination
 import { OperationalTermsSection } from './contract-form/operational-terms-section';
 import { LegalComplianceSection } from './contract-form/legal-compliance-section';
 import { AiEnhancementSection } from './contract-form/ai-enhancement-section';
+import { ProgressNavigation } from './contract-form/progress-navigation';
 
 // Import shared schema and utilities
 import { contractFormSchema, ContractFormData } from '@/lib/contract-form-schema';
 import { generateContractDraft } from '@/lib/contract-generator';
+import { calculateSectionProgress } from '@/lib/form-progress-tracker';
 
 export function AiDraftingFormModular() {
   const [draft, setDraft] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export function AiDraftingFormModular() {
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview');
   const [mounted, setMounted] = useState(false);
+  const [currentSection, setCurrentSection] = useState('parties');
 
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
@@ -155,6 +158,12 @@ export function AiDraftingFormModular() {
     },
   });
 
+  // Watch form values for progress tracking
+  const watchedValues = useWatch({ control: form.control });
+  const sections = calculateSectionProgress(watchedValues);
+  const sectionIds = sections.map(s => s.id);
+  const currentSectionIndex = sectionIds.indexOf(currentSection);
+
   async function onSubmit(values: ContractFormData) {
     setIsLoading(true);
     setDraft(null);
@@ -238,9 +247,31 @@ export function AiDraftingFormModular() {
     setIsEditing(false);
   };
 
+  // Navigation functions
+  const handleSectionChange = (sectionId: string) => {
+    setCurrentSection(sectionId);
+  };
+
+  const handleNext = () => {
+    const currentIndex = sectionIds.indexOf(currentSection);
+    if (currentIndex < sectionIds.length - 1) {
+      setCurrentSection(sectionIds[currentIndex + 1]);
+    }
+  };
+
+  const handlePrevious = () => {
+    const currentIndex = sectionIds.indexOf(currentSection);
+    if (currentIndex > 0) {
+      setCurrentSection(sectionIds[currentIndex - 1]);
+    }
+  };
+
+  const canGoNext = currentSectionIndex < sectionIds.length - 1;
+  const canGoPrevious = currentSectionIndex > 0;
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-      <Card className={`h-fit ${draft ? 'lg:sticky lg:top-4 lg:self-start' : ''}`}>
+    <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
+      <Card className={`h-fit transition-all duration-300 ${draft ? 'lg:sticky lg:top-4 lg:self-start' : ''}`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <PenTool className="h-5 w-5" />
@@ -255,7 +286,7 @@ export function AiDraftingFormModular() {
           <ScrollArea
             className={`${
               draft ? 'h-[calc(100vh-16rem)]' : 'h-[calc(100vh-12rem)]'
-            } pr-2`}
+            } px-2`}
           >
             <div className="pr-4 space-y-6">
               <Form {...form}>
@@ -263,38 +294,18 @@ export function AiDraftingFormModular() {
                   onSubmit={form.handleSubmit(onSubmit)}
                   className="space-y-8"
                 >
-                  <Tabs defaultValue="parties" className="w-full">
-                    <TabsList className="grid w-full h-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1">
-                      <TabsTrigger value="parties" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <Users className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Parties</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="scope" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <FileText className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Scope</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="commercial" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <Bot className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Commercial</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="duration" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <AlertCircle className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Duration</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="operational" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <Settings className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Operational</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="legal" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <Save className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">Legal</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="ai-enhancement" className="flex items-center gap-2 px-2 py-2 text-xs">
-                        <Bot className="h-4 w-4 shrink-0" />
-                        <span className="hidden sm:inline truncate">AI+</span>
-                      </TabsTrigger>
-                    </TabsList>
+                  {/* Progress Navigation */}
+                  <ProgressNavigation
+                    sections={sections}
+                    currentSection={currentSection}
+                    onSectionChange={handleSectionChange}
+                    onNext={handleNext}
+                    onPrevious={handlePrevious}
+                    canGoNext={canGoNext}
+                    canGoPrevious={canGoPrevious}
+                  />
 
+                  <Tabs value={currentSection} onValueChange={setCurrentSection} className="w-full">
                     <TabsContent value="parties" className="space-y-6 mt-6">
                       <PartiesIdentificationSection control={form.control} />
                     </TabsContent>
