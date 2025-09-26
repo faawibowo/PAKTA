@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PreviewContractModal } from "./contract-modal";
 
 interface User {
   id: number;
@@ -54,6 +55,10 @@ export function ContractTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(
+    null,
+  );
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Fetch contracts if not provided via props
   useEffect(() => {
@@ -207,7 +212,13 @@ export function ContractTable({
           <TableBody>
             {filteredContracts.length > 0 ? (
               filteredContracts.map((contract) => (
-                <TableRow key={contract.id}>
+                <TableRow
+                  key={contract.id}
+                  onClick={() => {
+                    setSelectedContract(contract);
+                    setModalOpen(true);
+                  }}
+                >
                   <TableCell className="font-medium">
                     {contract.title}
                   </TableCell>
@@ -269,6 +280,13 @@ export function ContractTable({
             )}
           </TableBody>
         </Table>
+        {selectedContract && (
+          <PreviewContractModal
+            contract={selectedContract}
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+          />
+        )}
       </div>
     </div>
   );

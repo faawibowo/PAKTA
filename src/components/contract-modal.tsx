@@ -10,11 +10,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Dynamic import PDF viewer, disable SSR
-const ContractPdfViewer = dynamic(
-  () => import("../components/contract-pdf-viewer"),
-  { ssr: false },
-);
+// Disable SSR supaya hanya render di browser
+const ContractPdfViewer = dynamic(() => import("./contract-pdf-viewer"), {
+  ssr: false,
+});
 
 interface PreviewContractModalProps {
   contract: Contract | null;
