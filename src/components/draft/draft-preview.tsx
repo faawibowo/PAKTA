@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit3, FileText, Code, Save, Download } from "lucide-react";
+import { Eye, Edit3, FileText, Code, Save, Download, FileDown } from "lucide-react";
 import { exportToDocx } from "@/lib/docs-export";
+import { exportToPdf } from "@/lib/pdf-export";
 import { toast } from "sonner";
 
 interface DraftPreviewProps {
@@ -48,6 +49,28 @@ export function DraftPreview({
       toast.success('Contract exported to DOCX successfully!');
     } catch (error) {
       console.error('Error exporting to DOCX:', error);
+      toast.error('Failed to export contract. Please try again.');
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!draft) {
+      toast.error('No draft available to export');
+      return;
+    }
+
+    try {
+      const title = contractTitle || 'Contract Document';
+      const filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      await exportToPdf(draft, {
+        title: title,
+        filename: filename
+      });
+      
+      toast.success('Contract exported to PDF successfully!');
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
       toast.error('Failed to export contract. Please try again.');
     }
   };
@@ -265,6 +288,10 @@ export function DraftPreview({
       )}
 
       <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+        <Button variant="outline" onClick={handleExportPdf}>
+          <FileDown className="h-4 w-4 mr-2" />
+          Export PDF
+        </Button>
         <Button variant="outline" onClick={handleExportDocx}>
           <Download className="h-4 w-4 mr-2" />
           Export DOCX

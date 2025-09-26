@@ -21,7 +21,8 @@ import {
   Code,
   Edit3,
   Archive,
-  Download
+  Download,
+  FileDown
 } from 'lucide-react';
 
 // Import modular components
@@ -40,6 +41,7 @@ import { generateContractDraft } from '@/lib/contract-generator';
 import { calculateSectionProgress } from '@/lib/form-progress-tracker';
 import { useDrafts, SavedDraft } from '@/hooks/use-drafts';
 import { exportToDocx } from '@/lib/docs-export';
+import { exportToPdf } from '@/lib/pdf-export';
 import { toast } from 'sonner';
 
 interface AiDraftingFormModularProps {
@@ -184,6 +186,34 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
     }
   }, [loadedDraft, form]);
 
+  // Check for editing contract from sessionStorage (when navigating from vault)
+  useEffect(() => {
+    const editingContractData = sessionStorage.getItem('editingContract');
+    if (editingContractData) {
+      try {
+        const parsedData = JSON.parse(editingContractData);
+        
+        // Populate form fields with the stored formData
+        if (parsedData.formData) {
+          form.reset(parsedData.formData);
+          toast.success(`Loaded contract: ${parsedData.title}`);
+        }
+        
+        // Populate generated content if available
+        if (parsedData.generatedContent) {
+          setDraft(parsedData.generatedContent);
+        }
+        
+        // Clean up sessionStorage after loading
+        sessionStorage.removeItem('editingContract');
+        
+      } catch (error) {
+        console.error('Error parsing editing contract data:', error);
+        toast.error('Failed to load contract data');
+      }
+    }
+  }, [form]);
+
   // Watch form values for progress tracking
   const watchedValues = useWatch({ control: form.control });
   const sections = calculateSectionProgress(watchedValues);
@@ -206,9 +236,139 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
     }
   }
 
-  const handleSaveDraft = () => {
-    // Add logic to save to backend/vault here
-    console.log('Saving draft to vault:', draft);
+  const handleSaveDraft = async () => {
+    if (!draft) {
+      toast.error('No contract draft available to save');
+      return;
+    }
+
+    try {
+      const formValues = form.getValues();
+      const contractTitle = formValues.contractTitle || 'Generated Contract';
+      
+      // Show loading toast
+      const loadingToastId = toast.loading('Saving contract to vault...');
+      
+      // Step 1: Save as contract first
+      const contractData = {
+        title: contractTitle,
+        parties: `${formValues.partyAName} and ${formValues.partyBName}`,
+        category: formValues.serviceType || 'General Contract',
+        value: parseFloat(formValues.contractValue) || 0.0,
+        startDate: formValues.startDate || new Date().toISOString(),
+        endDate: formValues.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        fileUrl: '', // Will be updated after PDF generation
+        contractData: {
+          generatedContent: draft,
+          formData: formValues,
+          generatedAt: new Date().toISOString(),
+        },
+        userId: userId,
+      };
+
+      const contractResponse = await fetch('/api/contracts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contractData),
+      });
+
+      const contractResult = await contractResponse.json();
+
+      if (!contractResponse.ok || !contractResult.success) {
+        throw new Error(contractResult.error || 'Failed to save contract');
+      }
+
+      // Step 2: Generate PDF and update contract with file URL
+      try {
+        const contractId = contractResult.contract.id;
+        const filename = `contract_${contractId}_${new Date().toISOString().split('T')[0]}.pdf`;
+        
+        console.log('Starting PDF generation for contract:', contractId);
+        
+        // Create a PDF generation endpoint call
+        const pdfResponse = await fetch('/api/contracts/generate-pdf', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contractId: contractId,
+            htmlContent: draft,
+            filename: filename,
+            title: contractTitle
+          }),
+        });
+
+        const pdfResult = await pdfResponse.json();
+        console.log('PDF generation result:', pdfResult);
+        
+        if (pdfResult.success && pdfResult.fileUrl) {
+          console.log('Updating contract with file URL:', pdfResult.fileUrl);
+          
+          // Update the contract with the PDF file URL and storage path
+          const updateResponse = await fetch(`/api/contracts/${contractId}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fileUrl: pdfResult.fileUrl,
+              contractData: {
+                ...contractData.contractData,
+                storagePath: pdfResult.storagePath,
+                fileUrl: pdfResult.fileUrl
+              }
+            }),
+          });
+          
+          const updateResult = await updateResponse.json();
+          console.log('Contract update result:', updateResult);
+        } else {
+          console.warn('PDF generation failed:', pdfResult);
+        }
+      } catch (pdfError) {
+        console.warn('PDF generation failed, continuing without file URL:', pdfError);
+        // Continue even if PDF generation fails
+      }
+
+      // Step 3: Also save as a draft in the drafts table
+      try {
+        if (currentDraftId) {
+          // Update existing draft
+          await updateDraft(
+            currentDraftId,
+            formValues,
+            formValues.partyAName || 'Untitled Contract',
+            formValues.serviceType || 'General Contract'
+          );
+        } else {
+          // Save new draft
+          const savedDraft = await saveDraft(
+            formValues,
+            formValues.partyAName || 'Untitled Contract',
+            formValues.serviceType || 'General Contract'
+          );
+          if (savedDraft) {
+            setCurrentDraftId(savedDraft.id);
+          }
+        }
+      } catch (draftError) {
+        console.warn('Draft saving failed, but contract was saved successfully:', draftError);
+        // Don't throw error here as the main contract saving succeeded
+      }
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToastId);
+      toast.success('Contract and draft saved to vault with PDF document!');
+      
+      console.log('Contract saved:', contractResult.contract);
+      
+    } catch (error) {
+      console.error('Error saving contract to vault:', error);
+      toast.error('Failed to save contract to vault. Please try again.');
+    }
   };
 
   const handleExportDocx = async () => {
@@ -230,6 +390,29 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
       toast.success('Contract exported to DOCX successfully!');
     } catch (error) {
       console.error('Error exporting to DOCX:', error);
+      toast.error('Failed to export contract. Please try again.');
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!draft) {
+      toast.error('No draft available to export');
+      return;
+    }
+
+    try {
+      const formValues = form.getValues();
+      const contractTitle = formValues.contractTitle || 'Contract Document';
+      const filename = `${contractTitle.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      await exportToPdf(draft, {
+        title: contractTitle,
+        filename: filename
+      });
+      
+      toast.success('Contract exported to PDF successfully!');
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
       toast.error('Failed to export contract. Please try again.');
     }
   };
@@ -551,9 +734,9 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                 )}
 
                 <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button variant="outline">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview
+                  <Button variant="outline" onClick={handleExportPdf}>
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
                   </Button>
                   <Button variant="outline" onClick={handleExportDocx}>
                     <Download className="h-4 w-4 mr-2" />
@@ -561,7 +744,7 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                   </Button>
                   <Button onClick={handleSaveDraft}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save to Vault
+                    Save to Vault (Contract + Draft)
                   </Button>
                 </div>
               </div>
