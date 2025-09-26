@@ -4,13 +4,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { FileText, PenTool, Shield, BarChart3, Settings, Menu } from "lucide-react"
+import { FileText, PenTool, Shield, BarChart3, Settings, Menu, LogIn, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useUserRole } from "@/context/user-role-context"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const navigation = [
-  { name: "Contract Vault", href: "/", icon: FileText, roles: ["Law", "Management", "Internal"] },
+  { name: "Contract Vault", href: "/contracts", icon: FileText, roles: ["Law", "Management", "Internal"] },
   { name: "Draft Assistant", href: "/draft", icon: PenTool, roles: ["Law", "Management"] },
   { name: "Validation", href: "/validation", icon: Shield, roles: ["Law", "Management", "Internal"] },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Management", "Internal"] },
@@ -29,7 +29,7 @@ export function Navigation() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
               <Shield className="h-8 w-8 text-primary" />
-              <span className="font-bold text-xl text-foreground">Smart Contract Vault</span>
+              <span className="font-bold text-xl text-foreground">PAKTA</span>
             </Link>
           </div>
 
@@ -56,6 +56,23 @@ export function Navigation() {
               }
               return null
             })}
+            
+            {/* Auth Buttons */}
+            <div className="flex items-center space-x-2 ml-4">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/register">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Sign Up
+                </Link>
+              </Button>
+            </div>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-4 bg-transparent">
@@ -105,6 +122,27 @@ export function Navigation() {
                 }
                 return null
               })}
+              
+              {/* Mobile Auth Buttons */}
+              <div className="space-y-2 pt-2">
+                <Link
+                  href="/login"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium text-muted-foreground hover:text-foreground hover:bg-accent"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <LogIn className="h-5 w-5" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  href="/register"
+                  className="flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium bg-primary text-primary-foreground"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserPlus className="h-5 w-5" />
+                  <span>Sign Up</span>
+                </Link>
+              </div>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-start mt-2 bg-transparent">

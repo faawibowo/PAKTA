@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/generated/prisma"
@@ -13,4 +7,69 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
+<<<<<<< Updated upstream
 }
+=======
+}
+
+model User {
+  id            Int               @id @default(autoincrement())
+  username      String            @unique
+  email         String            @unique
+  password      String
+  oauthProvider String?
+  oauthId       String?
+  role          UserRole          @default(INTERNAL)
+  aiDrafts      AIContractDraft[] @relation("UserAIContractDrafts")
+  contracts     Contract[]        @relation("UserContracts")
+}
+
+model Contract {
+  id           Int                  @id @default(autoincrement())
+  title        String
+  parties      String
+  category     String
+  status       ContractStatus
+  value        Float
+  startDate    DateTime
+  endDate      DateTime
+  uploadedAt   DateTime             @default(now())
+  fileUrl      String
+  contractData Json
+  userId       Int
+  user         User                 @relation("UserContracts", fields: [userId], references: [id])
+  validations  ContractValidation[] @relation("ContractValidations")
+}
+
+model AIContractDraft {
+  id           Int    @id @default(autoincrement())
+  companyName  String
+  contractType String
+  duration     Int
+  content      Json
+  status       String
+  userId       Int
+  user         User   @relation("UserAIContractDrafts", fields: [userId], references: [id])
+}
+
+model ContractValidation {
+  id             Int      @id @default(autoincrement())
+  contractId     Int
+  mandatoryElems Json
+  riskDetected   Json
+  analysisDate   DateTime @default(now())
+  contract       Contract @relation("ContractValidations", fields: [contractId], references: [id])
+}
+
+enum UserRole {
+  MANAGEMENT
+  LAW
+  INTERNAL
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  PENDING
+}
+>>>>>>> Stashed changes
