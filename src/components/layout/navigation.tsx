@@ -37,8 +37,8 @@ export function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <Image src='/logo-pakta.png' height={32} width={32} alt='Pakta Logo'/>
-              <span className="font-bold text-xl text-foreground">PAKTA</span>
+              <Image src='/pakta.png' height={40} width={40} alt='Pakta Logo'/>
+              <span className="text-2xl font-['IBM_Plex_Mono',monospace] tracking-wider">pakta</span>
             </Link>
           </div>
 
@@ -77,7 +77,7 @@ export function Navigation() {
                   variant="outline" 
                   size="sm"
                   onClick={handleLogout}
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 ml-2"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>

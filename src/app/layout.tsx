@@ -6,12 +6,11 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 import { UserRoleProvider } from "@/context/user-role-context"
+import { AnimatedBackground } from "@/components/animated-background"
 
 export const metadata: Metadata = {
-  title: "PAKTA",
+  title: "Smart Contract Vault",
   description: "AI-powered contract management and validation platform",
-  generator: "v0.app",
-  icons: '/pakta.ico'
 }
 
 export default function RootLayout({
@@ -25,6 +24,7 @@ export default function RootLayout({
         <script src="https://accounts.google.com/gsi/client" async defer></script>
       </head>
       <body className="font-sans bg-background text-foreground">
+        <AnimatedBackground />
         <Suspense fallback={null}>
           <UserRoleProvider>{children}</UserRoleProvider>
           <Analytics />

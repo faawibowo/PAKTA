@@ -299,7 +299,6 @@ export function ContractTable({
                           onClick={async () => {
                           const success = await deleteContractAndFile(contract.id);
                           if (success) {
-                            handleDelete(contract.id);
                             alert("Deleted successfully.");
                           } else {
                             alert("Failed to delete contract.");

@@ -177,8 +177,8 @@ export default function HomePage() {
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto container flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Image src='/logo-pakta.png' height={32} width={32} alt='Pakta Logo'/>
-            <span className="font-bold text-xl">PAKTA</span>
+            <Image src='/pakta.png' height={40} width={40} alt='Pakta Logo'/>
+            <span className="text-2xl font-['IBM_Plex_Mono',monospace] tracking-wider">pakta</span>
           </div>
         </div>
       </div>
