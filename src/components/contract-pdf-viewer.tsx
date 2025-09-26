@@ -1,7 +1,7 @@
 // src/components/ContractPdfViewer.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "pdfjs-dist/web/pdf_viewer.css";
 
@@ -16,13 +16,29 @@ interface ContractPdfViewerProps {
 
 export default function ContractPdfViewer({ fileUrl }: ContractPdfViewerProps) {
   const [numPages, setNumPages] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth - 16); // padding
+      }
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <div className="w-1/2 h-[600px] overflow-auto border p-2">
+    <div
+      ref={containerRef}
+      className="w-full max-h-[80vh] overflow-auto border p-2 bg-white"
+    >
       <Document
         file={fileUrl}
         onLoadSuccess={onDocumentLoadSuccess}
@@ -30,11 +46,11 @@ export default function ContractPdfViewer({ fileUrl }: ContractPdfViewerProps) {
       >
         {Array.from({ length: numPages ?? 0 }, (_, index) => (
           <Page
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
             key={`page_${index + 1}`}
             pageNumber={index + 1}
-            width={400}
+            width={containerWidth}
+            renderTextLayer={false}
+            renderAnnotationLayer={false}
           />
         ))}
       </Document>

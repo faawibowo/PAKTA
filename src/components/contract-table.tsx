@@ -198,7 +198,7 @@ export function ContractTable({
       </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table className="w-full">
           <TableHeader>
             <TableRow>
               <TableHead>Contract Title</TableHead>
