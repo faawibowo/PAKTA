@@ -65,6 +65,11 @@ export const contractFormSchema = z.object({
   disputeResolution: z
     .string()
     .min(1, { message: "Dispute resolution method is required." }),
+
+  // AI Enhancement Fields
+  additionalRequirements: z.string().optional(),
+  specialInstructions: z.string().optional(),
+  supportingDocuments: z.array(z.string()).optional(), // Array of file content or base64 strings
 });
 
 export type ContractFormData = z.infer<typeof contractFormSchema>;

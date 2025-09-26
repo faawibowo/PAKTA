@@ -22,30 +22,9 @@ export default function DraftPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={useModular ? "outline" : "default"}>
-              {useModular ? "Tabbed Layout" : "Scrollable Layout"}
-            </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setUseModular(!useModular)}
-              className="flex items-center gap-2"
-            >
-              {useModular ? (
-                <>
-                  <List className="h-4 w-4" />
-                  Switch to Scrollable
-                </>
-              ) : (
-                <>
-                  <LayoutGrid className="h-4 w-4" />
-                  Switch to Tabbed
-                </>
-              )}
-            </Button>
           </div>
         </div>
-        {useModular ? <AiDraftingFormModular /> : <AiDraftingForm />}
+        <AiDraftingFormModular />
       </div>
     </MainLayout>
   );

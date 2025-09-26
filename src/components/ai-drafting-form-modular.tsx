@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -18,7 +18,8 @@ import {
   PenTool, 
   Loader2,
   Eye,
-  Code
+  Code,
+  Edit3
 } from 'lucide-react';
 
 // Import modular components
@@ -28,6 +29,7 @@ import { CommercialTermsSection } from './contract-form/commercial-terms-section
 import { DurationTerminationSection } from './contract-form/duration-termination-section';
 import { OperationalTermsSection } from './contract-form/operational-terms-section';
 import { LegalComplianceSection } from './contract-form/legal-compliance-section';
+import { AiEnhancementSection } from './contract-form/ai-enhancement-section';
 
 // Import shared schema and utilities
 import { contractFormSchema, ContractFormData } from '@/lib/contract-form-schema';
@@ -35,8 +37,89 @@ import { generateContractDraft } from '@/lib/contract-generator';
 
 export function AiDraftingFormModular() {
   const [draft, setDraft] = useState<string | null>(null);
+  const [editableDraft, setEditableDraft] = useState<string>("");
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview');
+  const [mounted, setMounted] = useState(false);
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const quillRef = useRef<any>(null);
+
+  useEffect(() => setMounted(true), []);
+
+  // Initialize Quill editor when editing mode is activated
+  useEffect(() => {
+    if (isEditing && editorRef.current && mounted) {
+      // Completely clear the editor container first
+      editorRef.current.innerHTML = '';
+      
+      // If there's already a Quill instance, destroy it first
+      if (quillRef.current) {
+        quillRef.current = null;
+      }
+
+      const Quill = require('quill').default;
+      
+      quillRef.current = new Quill(editorRef.current, {
+        theme: 'snow',
+        modules: {
+          toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ["bold", "italic", "underline", "strike"],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ indent: "-1" }, { indent: "+1" }],
+            ["link"],
+            [{ align: [] }],
+            ["clean"],
+          ],
+        },
+        formats: [
+          "header",
+          "bold",
+          "italic",
+          "underline",
+          "strike",
+          "list",
+          "indent",
+          "link",
+          "align",
+        ]
+      });
+
+      // Set initial content from current draft
+      if (draft) {
+        quillRef.current.root.innerHTML = draft;
+      }
+
+      // Listen for changes
+      quillRef.current.on('text-change', () => {
+        const content = quillRef.current.root.innerHTML;
+        setEditableDraft(content);
+      });
+    }
+
+    // Cleanup function - runs when component unmounts or dependencies change
+    return () => {
+      if (!isEditing && quillRef.current) {
+        try {
+          quillRef.current.disable();
+          quillRef.current.off('text-change');
+          if (editorRef.current) {
+            // Find and remove toolbar element
+            const toolbar = editorRef.current.parentNode?.querySelector('.ql-toolbar');
+            if (toolbar) {
+              toolbar.remove();
+            }
+            editorRef.current.innerHTML = '';
+          }
+        } catch (error) {
+          console.warn('Error cleaning up Quill in useEffect:', error);
+        }
+        quillRef.current = null;
+      }
+    };
+  }, [isEditing, mounted, draft]);
 
   const form = useForm<ContractFormData>({
     resolver: zodResolver(contractFormSchema),
@@ -66,6 +149,9 @@ export function AiDraftingFormModular() {
       governingLaw: "",
       confidentiality: "",
       disputeResolution: "",
+      additionalRequirements: "",
+      specialInstructions: "",
+      supportingDocuments: [],
     },
   });
 
@@ -73,17 +159,83 @@ export function AiDraftingFormModular() {
     setIsLoading(true);
     setDraft(null);
 
-    // Simulate AI drafting
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    const generatedDraft = generateContractDraft(values);
-    setDraft(generatedDraft);
-    setIsLoading(false);
+    try {
+      // Use the AI-enhanced contract generator
+      const generatedDraft = await generateContractDraft(values);
+      setDraft(generatedDraft);
+    } catch (error) {
+      console.error('Error generating contract:', error);
+      // You might want to show an error message to the user here
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleSaveDraft = () => {
     // Add logic to save to backend/vault here
     console.log('Saving draft to vault:', draft);
+  };
+
+  const handleEditToggle = () => {
+    if (!isEditing) {
+      // Entering edit mode - set editableDraft to current draft content
+      setEditableDraft(draft || "");
+    }
+    setIsEditing(!isEditing);
+  };
+
+  const handleSaveEdit = () => {
+    // Get content from Quill editor if it exists
+    if (quillRef.current) {
+      const content = quillRef.current.root.innerHTML;
+      setEditableDraft(content);
+      setDraft(content);
+      
+      // Properly destroy Quill instance
+      try {
+        quillRef.current.disable();
+        quillRef.current.off('text-change');
+        if (editorRef.current) {
+          // Find and remove toolbar element
+          const toolbar = editorRef.current.parentNode?.querySelector('.ql-toolbar');
+          if (toolbar) {
+            toolbar.remove();
+          }
+          // Clear the entire container
+          editorRef.current.innerHTML = '';
+        }
+      } catch (error) {
+        console.warn('Error cleaning up Quill:', error);
+      }
+      quillRef.current = null;
+    } else {
+      setDraft(editableDraft);
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    // Properly destroy Quill instance
+    if (quillRef.current) {
+      try {
+        quillRef.current.disable();
+        quillRef.current.off('text-change');
+        if (editorRef.current) {
+          // Find and remove toolbar element
+          const toolbar = editorRef.current.parentNode?.querySelector('.ql-toolbar');
+          if (toolbar) {
+            toolbar.remove();
+          }
+          // Clear the entire container
+          editorRef.current.innerHTML = '';
+        }
+      } catch (error) {
+        console.warn('Error cleaning up Quill:', error);
+      }
+      quillRef.current = null;
+    }
+    setEditableDraft(draft || "");
+    setIsEditing(false);
   };
 
   return (
@@ -112,7 +264,7 @@ export function AiDraftingFormModular() {
                   className="space-y-8"
                 >
                   <Tabs defaultValue="parties" className="w-full">
-                    <TabsList className="grid w-full h-full grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-1">
+                    <TabsList className="grid w-full h-full grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-1">
                       <TabsTrigger value="parties" className="flex items-center gap-2 px-2 py-2 text-xs">
                         <Users className="h-4 w-4 shrink-0" />
                         <span className="hidden sm:inline truncate">Parties</span>
@@ -136,6 +288,10 @@ export function AiDraftingFormModular() {
                       <TabsTrigger value="legal" className="flex items-center gap-2 px-2 py-2 text-xs">
                         <Save className="h-4 w-4 shrink-0" />
                         <span className="hidden sm:inline truncate">Legal</span>
+                      </TabsTrigger>
+                      <TabsTrigger value="ai-enhancement" className="flex items-center gap-2 px-2 py-2 text-xs">
+                        <Bot className="h-4 w-4 shrink-0" />
+                        <span className="hidden sm:inline truncate">AI+</span>
                       </TabsTrigger>
                     </TabsList>
 
@@ -162,6 +318,10 @@ export function AiDraftingFormModular() {
                     <TabsContent value="legal" className="space-y-6 mt-6">
                       <LegalComplianceSection control={form.control} />
                     </TabsContent>
+
+                    <TabsContent value="ai-enhancement" className="space-y-6 mt-6">
+                      <AiEnhancementSection control={form.control} />
+                    </TabsContent>
                   </Tabs>
 
                   <div className="pt-4">
@@ -173,7 +333,7 @@ export function AiDraftingFormModular() {
                       {isLoading && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       )}
-                      Generate Contract Draft
+                      {isLoading ? 'Generating AI-Enhanced Contract...' : 'Generate AI-Enhanced Contract Draft'}
                     </Button>
                   </div>
                 </form>
@@ -187,55 +347,95 @@ export function AiDraftingFormModular() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            AI Generated Draft
+            Generated Draft
           </CardTitle>
           <CardDescription>
-            Review and edit the AI-generated contract draft below.
+            Review and edit the contract draft below.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
           <ScrollArea className="h-[calc(100vh-12rem)]">
             {draft ? (
               <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      <span className="text-sm font-medium">Preview Mode</span>
-                    </div>
-                    <div className="flex items-center border rounded-md">
+                {!isEditing ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Eye className="h-4 w-4" />
+                          <span className="text-sm font-medium">Preview Mode</span>
+                        </div>
+                        <div className="flex items-center border rounded-md">
+                          <Button
+                            variant={viewMode === 'preview' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('preview')}
+                            className="rounded-r-none"
+                          >
+                            <FileText className="h-4 w-4 mr-1" />
+                            Preview
+                          </Button>
+                          <Button
+                            variant={viewMode === 'html' ? 'default' : 'ghost'}
+                            size="sm"
+                            onClick={() => setViewMode('html')}
+                            className="rounded-l-none"
+                          >
+                            <Code className="h-4 w-4 mr-1" />
+                            HTML
+                          </Button>
+                        </div>
+                      </div>
                       <Button
-                        variant={viewMode === 'preview' ? 'default' : 'ghost'}
+                        variant="outline"
                         size="sm"
-                        onClick={() => setViewMode('preview')}
-                        className="rounded-r-none"
+                        onClick={handleEditToggle}
                       >
-                        <FileText className="h-4 w-4 mr-1" />
-                        Preview
-                      </Button>
-                      <Button
-                        variant={viewMode === 'html' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('html')}
-                        className="rounded-l-none"
-                      >
-                        <Code className="h-4 w-4 mr-1" />
-                        HTML
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit
                       </Button>
                     </div>
-                  </div>
-                </div>
 
-                {viewMode === 'preview' ? (
-                  <div className="prose dark:prose-invert max-w-none text-foreground pr-4">
-                    <div dangerouslySetInnerHTML={{ __html: draft }} />
-                  </div>
+                    {viewMode === 'preview' ? (
+                      <div className="prose dark:prose-invert max-w-none text-foreground pr-4">
+                        <div dangerouslySetInnerHTML={{ __html: draft }} />
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-muted rounded-md">
+                        <pre className="text-sm text-muted-foreground whitespace-pre-wrap overflow-auto max-h-96">
+                          {draft}
+                        </pre>
+                      </div>
+                    )}
+                  </>
                 ) : (
-                  <div className="p-4 bg-muted rounded-md">
-                    <pre className="text-sm text-muted-foreground whitespace-pre-wrap overflow-auto max-h-96">
-                      {draft}
-                    </pre>
-                  </div>
+                  <>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <Edit3 className="h-4 w-4" />
+                        <span className="text-sm font-medium">Edit Mode</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleCancelEdit}
+                        >
+                          Cancel
+                        </Button>
+                        <Button size="sm" onClick={handleSaveEdit}>
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="border rounded-md overflow-hidden">
+                      <div 
+                        ref={editorRef}
+                        className="min-h-[400px] bg-white"
+                        style={{ height: '400px' }}
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="flex justify-end gap-2 pt-4 border-t">
