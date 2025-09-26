@@ -1,6 +1,9 @@
+"use client"
+
 import { MainLayout } from "@/components/layout/main-layout"
 import { ContractValidation } from "@/components/contract-validation"
 import ContractUploadForm from "@/components/contract-upload-form"
+import { formatUserRole } from "@/lib/role-utils"
 
 export default function ValidationPage() {
   return (

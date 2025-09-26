@@ -7,6 +7,7 @@ import { DraftVault } from "@/components/drafts/draft-vault";
 import { Button } from "@/components/ui/button";
 import { FileText, Archive } from "lucide-react";
 import { SavedDraft } from "@/hooks/use-drafts";
+import { formatUserRole } from "@/lib/role-utils";
 
 export default function DraftPage() {
   const [activeView, setActiveView] = useState<'form' | 'vault'>('form');

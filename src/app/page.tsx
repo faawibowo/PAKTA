@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Shield, FileText, PenTool, CheckCircle, BarChart3, Loader2 } from "lucide-react"
+import { useUserRole } from '@/context/user-role-context'
+import { toast } from 'sonner'
 import { initGoogleAuth, handleGoogleSignIn } from '@/lib/google-auth'
 
 export default function HomePage() {
@@ -20,15 +22,23 @@ export default function HomePage() {
     email: "",
     password: "",
     confirmPassword: "",
+    role: ""
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { setUserRole, setUser, isLoggedIn } = useUserRole()
 
   useEffect(() => {
     // Initialize Google Auth when component mounts
     initGoogleAuth().catch(console.error)
   }, [])
+
+  // If already logged in, redirect to appropriate page
+  if (isLoggedIn) {
+    router.push('/draft')
+    return null
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,72 +47,58 @@ export default function HomePage() {
 
     try {
       if (selectedTab === "register") {
-        // Validasi password match
+        // Validation for register
         if (formData.password !== formData.confirmPassword) {
-          throw new Error("Password tidak cocok")
+          throw new Error("Passwords do not match")
+        }
+        if (!formData.role) {
+          throw new Error("Please select a role")
         }
 
-        // API call untuk register
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            username: formData.name,
-            email: formData.email,
-            password: formData.password,
-            role: 'INTERNAL' // Default role
-          })
-        })
-
-        const result = await response.json()
-
-        if (!response.ok) {
-          // Handle specific field errors
-          if (result.field === 'username') {
-            throw new Error("Username sudah digunakan")
-          } else if (result.field === 'email') {
-            throw new Error("Email sudah digunakan")
-          } else {
-            throw new Error(result.error || "Registrasi gagal")
-          }
+        // Simulate registration
+        const userData = {
+          id: Math.random().toString(),
+          username: formData.name,
+          role: formData.role as 'Law' | 'Management' | 'Internal'
         }
 
-        // Success - redirect
-        router.push("/contracts")
+        setUser(userData)
+        setUserRole(formData.role as 'Law' | 'Management' | 'Internal')
+        toast.success('Registration successful!')
+        
+        // Redirect based on role
+        if (formData.role === 'Management') {
+          router.push('/admin')
+        } else {
+          router.push('/draft')
+        }
         
       } else {
         // Login logic
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            password: formData.password
-          })
-        })
-
-        const result = await response.json()
-
-        if (!response.ok) {
-          // Handle specific field errors
-          if (result.field === 'email') {
-            throw new Error("Email tidak terdaftar")
-          } else if (result.field === 'password') {
-            throw new Error("Password salah")
-          } else {
-            throw new Error(result.error || "Login gagal")
-          }
+        if (!formData.role) {
+          throw new Error("Please select a role")
         }
 
-        // Success - redirect to contracts
-        router.push("/contracts")
+        // Simulate login
+        const userData = {
+          id: '1',
+          username: formData.email.split('@')[0],
+          role: formData.role as 'Law' | 'Management' | 'Internal'
+        }
+
+        setUser(userData)
+        setUserRole(formData.role as 'Law' | 'Management' | 'Internal')
+        toast.success('Login successful!')
+        
+        // Redirect based on role
+        if (formData.role === 'Management') {
+          router.push('/admin')
+        } else {
+          router.push('/draft')
+        }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Terjadi kesalahan")
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setIsLoading(false)
     }
@@ -131,8 +127,30 @@ export default function HomePage() {
         throw new Error(result.error || "Google authentication failed")
       }
 
-      // Success - redirect
-      router.push("/contracts")
+      // Use the actual user data from database
+      const userData = {
+        id: result.user.id.toString(),
+        username: result.user.username,
+        role: result.user.role as 'Law' | 'Management' | 'Internal'
+      }
+
+      // Set user data using the login function which handles cookies
+      setUser(userData)
+      setUserRole(userData.role)
+      
+      // Save to cookies manually as well for middleware
+      document.cookie = `userId=${userData.id}; path=/; SameSite=Lax`
+      document.cookie = `userRole=${userData.role}; path=/; SameSite=Lax`
+      document.cookie = `username=${userData.username}; path=/; SameSite=Lax`
+
+      toast.success('Google authentication successful!')
+      
+      // Redirect based on actual user role from database
+      if (userData.role === 'Management') {
+        router.push('/admin')
+      } else {
+        router.push('/draft')
+      }
       
     } catch (error) {
       console.error('Google auth error:', error)
@@ -148,6 +166,7 @@ export default function HomePage() {
       email: "",
       password: "",
       confirmPassword: "",
+      role: ""
     })
     setError("")
   }
@@ -300,6 +319,20 @@ export default function HomePage() {
                       )}
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role</Label>
+                    <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Law">Law Department</SelectItem>
+                        <SelectItem value="Management">Management</SelectItem>
+                        <SelectItem value="Internal">Internal User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
                   {error && (
                     <Alert variant="destructive">
@@ -349,6 +382,12 @@ export default function HomePage() {
                   </svg>
                   {selectedTab === "register" ? "Sign up with Google" : "Sign in with Google"}
                 </Button>
+                
+                <div className="mt-4 text-center text-sm text-gray-600">
+                  <p>Demo credentials:</p>
+                  <p>Email: any@email.com | Password: any password</p>
+                  <p>Role: Select from dropdown above</p>
+                </div>
               </CardContent>
             </Card>
           </div>

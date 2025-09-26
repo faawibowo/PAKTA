@@ -36,14 +36,18 @@ export async function POST(request: NextRequest) {
     })
 
     if (user) {
-      // User exists, return user data
+      // User exists, return user data with proper role format
+      const frontendRole = user.role === 'MANAGEMENT' ? 'Management' 
+                        : user.role === 'LAW' ? 'Law' 
+                        : 'Internal'
+      
       return NextResponse.json({
         message: 'Login successful',
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role
+          role: frontendRole
         }
       })
     } else {
@@ -63,13 +67,17 @@ export async function POST(request: NextRequest) {
         }
       })
 
+      const frontendRole = user.role === 'MANAGEMENT' ? 'Management' 
+                        : user.role === 'LAW' ? 'Law' 
+                        : 'Internal'
+
       return NextResponse.json({
         message: 'Registration successful',
         user: {
           id: user.id,
           username: user.username,
           email: user.email,
-          role: user.role
+          role: frontendRole
         }
       })
     }

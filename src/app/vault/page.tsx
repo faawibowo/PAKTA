@@ -1,8 +1,11 @@
+"use client"
+
 import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { FileText } from "lucide-react"
 import { ContractTable } from "@/components/contract-table"
 import { UploadContractModal } from "@/components/upload-contract-modal"
+import { formatUserRole } from "@/lib/role-utils"
 
 export default function VaultPage() {
   return (
