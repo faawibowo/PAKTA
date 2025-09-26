@@ -7,19 +7,16 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
-<<<<<<< Updated upstream
-}
-=======
 }
 
 model User {
   id            Int               @id @default(autoincrement())
   username      String            @unique
   email         String            @unique
-  password      String
   oauthProvider String?
   oauthId       String?
   role          UserRole          @default(INTERNAL)
+  password      String
   aiDrafts      AIContractDraft[] @relation("UserAIContractDrafts")
   contracts     Contract[]        @relation("UserContracts")
 }
@@ -72,4 +69,3 @@ enum ContractStatus {
   EXPIRED
   PENDING
 }
->>>>>>> Stashed changes

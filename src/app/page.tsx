@@ -1,15 +1,16 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
 import { Shield, FileText, PenTool, CheckCircle, BarChart3, Loader2 } from "lucide-react"
+import { initGoogleAuth, handleGoogleSignIn } from '@/lib/google-auth'
 
 export default function HomePage() {
   const [selectedTab, setSelectedTab] = useState<"login" | "register">("login")
@@ -18,11 +19,15 @@ export default function HomePage() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "INTERNAL", // Default role
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+
+  useEffect(() => {
+    // Initialize Google Auth when component mounts
+    initGoogleAuth().catch(console.error)
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -46,7 +51,7 @@ export default function HomePage() {
             username: formData.name,
             email: formData.email,
             password: formData.password,
-            role: formData.role // Gunakan role yang dipilih user
+            role: 'INTERNAL' // Default role
           })
         })
 
@@ -102,9 +107,38 @@ export default function HomePage() {
     }
   }
 
-  const handleGoogleAuth = () => {
-    // TODO: Implement Google authentication
-    console.log("Google auth clicked")
+  const handleGoogleAuth = async () => {
+    setIsLoading(true)
+    setError("")
+    
+    try {
+      const authResponse = await handleGoogleSignIn()
+      
+      const response = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          token: authResponse.access_token
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "Google authentication failed")
+      }
+
+      // Success - redirect
+      router.push("/contracts")
+      
+    } catch (error) {
+      console.error('Google auth error:', error)
+      setError(error instanceof Error ? error.message : "Google authentication failed")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const resetForm = () => {
@@ -113,7 +147,6 @@ export default function HomePage() {
       email: "",
       password: "",
       confirmPassword: "",
-      role: "INTERNAL",
     })
     setError("")
   }
@@ -251,39 +284,20 @@ export default function HomePage() {
                   </div>
                   
                   {selectedTab === "register" && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm Password</Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          placeholder="Confirm your password"
-                          value={formData.confirmPassword}
-                          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                          required
-                        />
-                        {formData.password !== formData.confirmPassword && formData.confirmPassword && (
-                          <p className="text-sm text-destructive">Passwords do not match</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                        <Select
-                          value={formData.role}
-                          onValueChange={(value) => setFormData({ ...formData, role: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="INTERNAL">Internal</SelectItem>
-                            <SelectItem value="LAW">Law</SelectItem>
-                            <SelectItem value="MANAGEMENT">Management</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirmPassword">Confirm Password</Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirm your password"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        required
+                      />
+                      {formData.password !== formData.confirmPassword && formData.confirmPassword && (
+                        <p className="text-sm text-destructive">Passwords do not match</p>
+                      )}
+                    </div>
                   )}
                   
                   {error && (

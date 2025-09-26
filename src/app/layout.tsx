@@ -20,6 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+      <head>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
+      </head>
       <body className="font-sans bg-background text-foreground">
         <Suspense fallback={null}>
           <UserRoleProvider>{children}</UserRoleProvider>
