@@ -97,8 +97,6 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
       </div>
 
       {/* Search and Filter Controls */}
-      <Card>
-        <CardContent className="p-4">
           <div className="flex gap-4 items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -123,8 +121,6 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
       {/* Drafts List */}
       <Card>
