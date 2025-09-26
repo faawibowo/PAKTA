@@ -62,3 +62,239 @@ d. Tindakan hukum sesuai undang-undang yang berlaku.
 Kebijakan ini akan ditinjau dan diperbarui setidaknya setiap Jangka Waktu, misalnya: dua tahun atau ketika terjadi perubahan signifikan dalam regulasi nasional, internasional, atau kebutuhan operasional.
 
 Tanda Tangan dan Jabatan Otoritas Pelabuhan
+
+# KUMPULAN KEBIJAKAN DAN PERATURAN HUKUM/COMPLIANCE UNTUK RAG SISTEM RISK ANALYSIS DAN RECOMMENDATION KONTRAK PELINDO ILCS
+
+## DAFTAR PUSTAKA DAN SUMBER REFERENSI
+
+**Tanggal Efektif:** 27 September 2025  
+**Nomor Dokumen:** RAG-ILCS-POLICY-2025  
+**Disusun Oleh:** Kementerian Perhubungan RI & Pelindo Group
+
+---
+
+## 1. PERATURAN PERUNDANG-UNDANGAN UTAMA
+
+### A. Undang-Undang Dasar
+1. **Undang-Undang Nomor 17 Tahun 2008 tentang Pelayaran**
+   - Mengatur penyelenggaraan pelayaran termasuk kepelabuhanan, keselamatan, dan keamanan pelayaran
+   - Dasar hukum pengelolaan pelabuhan dan sistem logistik nasional
+   - Kewenangan syahbandar dan otoritas pelabuhan
+
+2. **Undang-Undang Nomor 66 Tahun 2024 tentang Perubahan Ketiga atas UU 17/2008**
+   - Pembaharuan regulasi investasi asing dalam industri pelayaran
+   - Persyaratan kapal minimum 50,000 GT untuk joint venture
+   - Penguatan prinsip cabotage
+
+### B. Peraturan Pemerintah
+3. **Peraturan Pemerintah Nomor 61 Tahun 2009 tentang Kepelabuhanan**
+   - Tatanan kepelabuhanan nasional
+   - Rencana induk pelabuhan dan daerah lingkungan kerja
+   - Konsesi dan penyelenggaraan kegiatan pelabuhan
+   - **Pasal 74**: Mekanisme konsesi kepada Badan Usaha Pelabuhan
+
+4. **Peraturan Pemerintah Nomor 64 Tahun 2015 tentang Perubahan atas PP 61/2009**
+   - Percepatan investasi infrastruktur kepelabuhanan
+   - Mekanisme penugasan/penunjukan konsesi pelabuhan
+
+5. **Peraturan Pemerintah Nomor 31 Tahun 2021 tentang Penyelenggaraan Bidang Pelayaran**
+   - Penyelenggaraan angkutan di perairan
+   - Port state control dan pengawasan kapal
+   - Manajemen kecelakaan maritim dan pembersihan bangkai kapal
+
+---
+
+## 2. PERATURAN KEAMANAN DAN KESELAMATAN MARITIM
+
+### A. ISPS Code (International Ship and Port Facility Security Code)
+6. **Peraturan Menteri Perhubungan Nomor PM 134 Tahun 2016 tentang Manajemen Keamanan Kapal dan Fasilitas Pelabuhan**
+   - Implementasi ISPS Code di Indonesia
+   - Prosedur verifikasi dan sertifikasi keamanan
+   - Ship Security Plan (SSP) dan Port Facility Security Plan (PFSP)
+   - Statement of Compliance of Port Facility (SoCPF)
+
+7. **Peraturan Menteri Perhubungan Nomor PM 51 Tahun 2021 tentang Prosedur dan Tata Cara Pelaksanaan Verifikasi Manajemen Keamanan Kapal dan Fasilitas Pelabuhan**
+   - Prosedur audit ISPS Code
+   - Kewenangan auditor internal dan eksternal
+   - Sanksi ketidaksesuaian (major/minor non-conformity)
+
+### B. Sistem Identifikasi dan Navigasi
+8. **Peraturan Menteri Perhubungan Nomor PM 7 Tahun 2019 tentang Pemasangan dan Pengaktifan Sistem Identifikasi Otomatis (AIS)**
+   - Kewajiban AIS Class A dan Class B
+   - Sanksi administrasi penangguhan SPB
+   - Pengawasan melalui SROP dan VTS
+
+9. **Peraturan Menteri Perhubungan Nomor PM 18 Tahun 2022 tentang Sistem Identifikasi Otomatis Bagi Kapal**
+   - Pembaharuan persyaratan AIS
+   - Integrasi dengan sistem e-navigation
+   - Koordinasi dengan IMO Resolution A.1155 dan A.1106
+
+---
+
+## 3. PERATURAN SISTEM INFORMASI DAN DIGITALISASI PELABUHAN
+
+### A. Inaportnet (Indonesia Port Network)
+10. **Peraturan Menteri Perhubungan Nomor PM 157 Tahun 2015 tentang Penerapan Inaportnet**
+    - Sistem layanan tunggal elektronik berbasis internet
+    - Integrasi dengan Indonesia National Single Window (INSW)
+    - Pelayanan kapal masuk, pindah, keluar, dan perpanjangan tambat
+
+11. **Peraturan Menteri Perhubungan Nomor PM 192 Tahun 2015 tentang Perubahan atas PM 157/2015**
+    - Penyempurnaan implementasi Inaportnet
+    - Integrasi dengan sistem internal pelabuhan
+
+12. **Peraturan Menteri Perhubungan Nomor PM 8 Tahun 2022 tentang Tata Cara Pelayanan Kapal Melalui Inaportnet**
+    - Mencabut PM 157/2015 dan PM 192/2015
+    - Modernisasi sistem pelayanan kapal elektronik
+    - Integrasi dengan sistem informasi kepelabuhanan
+
+---
+
+## 4. PERATURAN TEKNIS PELABUHAN
+
+### A. Standar Teknis dan Operasional
+13. **Standard Design Criteria for Port in Indonesia 1984**
+    - Kriteria desain pelabuhan standar Indonesia
+    - Spesifikasi dermaga, bollard, dan fasilitas pelabuhan
+    - Persyaratan teknis berdasarkan gross tonnage kapal
+
+14. **SNI 9288-1:2024 Pelabuhan Perikanan - Klasifikasi dan Persyaratan**
+    - Standar fasilitas pokok, fungsional, dan penunjang
+    - Klasifikasi PPI, PPP, PPN, PPS, dan PPS Plus
+    - Kriteria teknis luas lahan, dermaga, kolam pelabuhan
+
+### B. Keselamatan dan Lingkungan
+15. **Peraturan Menteri Perhubungan Nomor PM 25 Tahun 2015 tentang Standar Keselamatan Transportasi Sungai, Danau dan Penyeberangan**
+    - Standar keselamatan SDM, sarana, dan prasarana
+    - Persyaratan peralatan keselamatan kapal
+    - Prosedur pencegahan kecelakaan pelayaran
+
+---
+
+## 5. PERATURAN PELINDO DAN BUMN
+
+### A. Tata Kelola Perusahaan (Good Corporate Governance)
+16. **Peraturan Menteri BUMN Nomor PER-01/MBU/2011 tentang Penerapan Tata Kelola Perusahaan yang Baik pada BUMN**
+    - Prinsip transparansi, akuntabilitas, responsibilitas, independensi, kewajaran
+    - Struktur organ perusahaan dan mekanisme pengawasan
+    - Sistem pelaporan dan manajemen risiko
+
+17. **Peraturan Menteri BUMN Nomor PER-3/MBU/03/2023 tentang Organ dan SDM BUMN**
+    - Struktur organisasi dan tata kelola BUMN
+    - Kualifikasi dan kompetensi direksi dan komisaris
+    - Sistem remunerasi dan penilaian kinerja
+
+### B. Compliance dan Anti-Korupsi
+18. **ISO 37001:2016 Anti-Bribery Management System**
+    - Standar internasional sistem manajemen anti-penyuapan
+    - Sertifikasi Pelindo Regional 1-4 dan Kantor Pusat
+    - Prosedur pencegahan dan penanganan gratifikasi
+
+---
+
+## 6. PERATURAN KONTRAK DAN PERJANJIAN KOMERSIAL
+
+### A. Hukum Kontrak Dasar
+19. **Kitab Undang-Undang Hukum Perdata (KUHPerdata) Pasal 1320, 1234, 1338**
+    - Syarat sahnya perjanjian
+    - Prestasi: memberikan, berbuat, tidak berbuat sesuatu
+    - Asas kebebasan berkontrak (pacta sunt servanda)
+
+20. **Undang-Undang Nomor 8 Tahun 1999 tentang Perlindungan Konsumen**
+    - Hak dan kewajiban konsumen dalam kontrak
+    - Tanggung jawab pelaku usaha
+    - Penyelesaian sengketa melalui BPSK
+
+### B. Kontrak Maritim dan Pelabuhan
+21. **International Convention on Maritime Liens and Mortgages 1993 (ratifikasi Keppres No. 44/2005)**
+    - Hak kebendaan atas kapal
+    - Hipotek kapal sebagai jaminan kredit
+    - Hak gadai maritim dan privilese
+
+---
+
+## 7. PERATURAN LINGKUNGAN DAN SUSTAINABILITY
+
+### A. Pengelolaan Limbah dan Lingkungan Maritime
+22. **International Convention for the Prevention of Pollution from Ships (MARPOL)**
+    - Pencegahan pencemaran laut dari kapal
+    - Pengelolaan limbah minyak, kimia, dan sampah
+    - Sertifikasi dan dokumentasi lingkungan
+
+23. **Undang-Undang Nomor 32 Tahun 2009 tentang Perlindungan dan Pengelolaan Lingkungan Hidup**
+    - AMDAL untuk kegiatan pelabuhan
+    - Pengelolaan limbah B3 dan non-B3
+    - Sanksi pencemaran lingkungan
+
+---
+
+## 8. PERATURAN TENAGA KERJA DAN K3
+
+### A. Keselamatan dan Kesehatan Kerja
+24. **Undang-Undang Nomor 1 Tahun 1970 tentang Keselamatan Kerja**
+    - Kewajiban pengusaha menyediakan alat pelindung diri
+    - Prosedur keselamatan kerja di pelabuhan
+    - Pelatihan dan sertifikasi pekerja pelabuhan
+
+25. **Peraturan Menteri Tenaga Kerja Nomor 4 Tahun 1998 tentang Alat Pemadam Api Ringan**
+    - Persyaratan instalasi APAR di fasilitas pelabuhan
+    - Inspeksi rutin dan pemeliharaan
+    - Pelatihan penggunaan alat pemadam kebakaran
+
+---
+
+## 9. PERATURAN TEKNOLOGI INFORMASI
+
+### A. Keamanan Informasi
+26. **Undang-Undang Nomor 19 Tahun 2016 tentang ITE (Informasi dan Transaksi Elektronik)**
+    - Perlindungan data pribadi dan informasi elektronik
+    - Tanda tangan elektronik dan sertifikat digital
+    - Sanksi kejahatan siber
+
+27. **ISO 27001:2013 Information Security Management System**
+    - Standar sistem manajemen keamanan informasi
+    - Sertifikasi ILCS untuk aplikasi Praya dan Palapa
+    - Pengelolaan risiko keamanan data
+
+---
+
+## 10. REKOMENDASI IMPLEMENTASI RAG SYSTEM
+
+### A. Framework Risk Analysis
+1. **Compliance Matrix Scoring**
+   - Bobot risiko berdasarkan tingkat regulasi (UU=4, PP=3, Permen=2, Standar=1)
+   - Kategorisasi risiko: Critical, High, Medium, Low
+   - Automatic flagging untuk non-compliance
+
+2. **Contract Clause Generator**
+   - Template klausul berdasarkan jenis kontrak
+   - Auto-insert compliance requirements
+   - Reference mapping ke peraturan terkait
+
+### B. AI/ML Recommendations
+1. **Regulatory Change Monitor**
+   - Real-time monitoring perubahan regulasi
+   - Impact assessment pada kontrak existing
+   - Alert system untuk update compliance
+
+2. **Risk Prediction Model**
+   - Historical data pattern analysis
+   - Predictive scoring untuk kontrak baru
+   - Recommendation engine untuk risk mitigation
+
+---
+
+## KESIMPULAN
+
+Sistem RAG untuk Risk Analysis dan Recommendation kontrak Pelindo ILCS harus mengintegrasikan seluruh peraturan di atas sebagai knowledge base. Framework compliance yang komprehensif akan memastikan:
+
+1. **Legal Certainty**: Kepatuhan terhadap hierarki peraturan perundang-undangan
+2. **Risk Mitigation**: Identifikasi dini potensi masalah hukum
+3. **Operational Excellence**: Efisiensi proses kontrak dengan standarisasi klausul
+4. **Continuous Improvement**: Adaptasi terhadap perubahan regulasi
+
+Implementasi sistem ini akan mendukung transformasi digital Pelindo dalam mengelola risiko kontrak sambil mempertahankan kepatuhan regulasi yang ketat.
+
+---
+
+**Catatan:** Dokumen ini merupakan kompilasi peraturan terkini per September 2025. Perlu dilakukan pemantauan berkelanjutan terhadap perubahan regulasi untuk menjaga akurasi sistem RAG.
