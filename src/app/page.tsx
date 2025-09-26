@@ -32,6 +32,9 @@ interface Contract {
   };
 }
 
+
+
+
 export default function HomePage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,9 +86,6 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{contracts.length}</div>
-              <p className="text-xs text-muted-foreground">
-                +2 from last month
-              </p>
             </CardContent>
           </Card>
           {/* ... other cards, you can calculate valid, expiring, critical based on contracts */}

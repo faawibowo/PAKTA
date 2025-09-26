@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {deleteContractAndFile} from '@/lib/fileService';
 import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -38,7 +39,12 @@ export interface Contract {
   parties: string;
   category: string;
   status: string;
+  value: number;
+  startDate: string;
+  endDate: string;
+  uploadedAt: string;
   fileUrl: string;
+  userId: number;
   user: User;
   contractData?: {
     generatedContent?: string;
@@ -300,7 +306,15 @@ export function ContractTable({
                         )}
                         <DropdownMenuItem
                           className="flex items-center gap-2"
-                          onClick={() => handleDelete(contract.id)}
+                          onClick={async () => {
+                          const success = await deleteContractAndFile(contract.id);
+                          if (success) {
+                            handleDelete(contract.id);
+                            alert("Deleted successfully.");
+                          } else {
+                            alert("Failed to delete contract.");
+                          }
+                          }}
                         >
                           <Trash className="h-4 w-4" />
                           Delete

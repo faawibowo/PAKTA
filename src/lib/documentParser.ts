@@ -1,9 +1,16 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import "pdfjs-dist/web/pdf_viewer.css";
+import { Document, Page, pdfjs } from "react-pdf";
 
 
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-}
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.mjs",
+  import.meta.url,
+).toString();
+
+// if (typeof window !== 'undefined') {
+//   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
+// }
 
 export async function extractTextFromFile(file: File): Promise<string> {
   const fileType = file.type;
