@@ -14,3 +14,63 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum UserRole {
+  MANAGEMENT
+  LAW
+  INTERNAL
+}
+
+enum ContractStatus {
+  ACTIVE
+  EXPIRED
+  PENDING
+}
+
+model User {
+  id           Int             @id @default(autoincrement())
+  username     String          @unique
+  email        String          @unique
+  oauthProvider String?        
+  oauthId      String?         
+  role         UserRole
+  contracts    Contract[]      @relation("UserContracts") 
+  aiDrafts     AIContractDraft[] @relation("UserAIContractDrafts") 
+}
+
+model Contract {
+  id             Int             @id @default(autoincrement())
+  title          String
+  parties        String   
+  category       String
+  status         ContractStatus
+  value          Float    
+  startDate      DateTime
+  endDate        DateTime
+  uploadedAt     DateTime        @default(now())
+  fileUrl        String          
+  contractData   Json            
+  userId         Int
+  user           User            @relation("UserContracts", fields: [userId], references: [id])
+  validations    ContractValidation[] @relation("ContractValidations") 
+}
+
+model AIContractDraft {
+  id            Int             @id @default(autoincrement())
+  companyName   String
+  contractType  String
+  duration      Int      
+  content       Json     
+  status        String   
+  userId        Int
+  user          User            @relation("UserAIContractDrafts", fields: [userId], references: [id]) // Fixed relation definition
+}
+
+model ContractValidation {
+  id            Int             @id @default(autoincrement())
+  contractId    Int
+  contract      Contract        @relation("ContractValidations", fields: [contractId], references: [id]) // Fixed relation definition
+  mandatoryElems Json          
+  riskDetected  Json           
+  analysisDate  DateTime       @default(now())
+}
