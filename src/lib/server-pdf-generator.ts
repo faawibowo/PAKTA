@@ -1,18 +1,9 @@
+// Server-side PDF generation utility
 import jsPDF from 'jspdf';
 
-interface PdfExportOptions {
-  title?: string;
-  filename?: string;
-}
-
-export async function exportToPdf(htmlContent: string, options: PdfExportOptions = {}) {
-  const {
-    title = 'Contract Document',
-    filename = 'contract.pdf',
-  } = options;
-
+export async function generatePdfFromHtml(htmlContent: string, title: string = 'Contract Document'): Promise<Buffer> {
   try {
-    // Create new jsPDF instance
+    // Create new jsPDF instance with same settings as client-side
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -27,25 +18,25 @@ export async function exportToPdf(htmlContent: string, options: PdfExportOptions
       creator: 'PAKTA'
     });
 
-    // Clean and process HTML content
+    // Clean and process HTML content (same as client-side)
     const cleanContent = cleanHtmlForPdf(htmlContent);
     
-    // Parse HTML and add content to PDF
+    // Parse HTML and add content to PDF (same as client-side)
     await addHtmlContentToPdf(pdf, cleanContent, title);
     
-    // Save the PDF
-    pdf.save(filename);
+    // Convert PDF to buffer instead of downloading
+    const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
     
-    return true;
-
+    return pdfBuffer;
   } catch (error) {
-    console.error('Error generating PDF:', error);
-    throw new Error('Failed to export document to PDF');
+    console.error('Error generating PDF from HTML:', error);
+    throw new Error('Failed to generate PDF document');
   }
 }
 
 function cleanHtmlForPdf(htmlContent: string): string {
   // Remove HTML tags and extract text content with basic formatting
+  // (Exact same logic as client-side)
   let text = htmlContent;
   
   // Replace common HTML entities
