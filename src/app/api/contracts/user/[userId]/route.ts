@@ -19,27 +19,32 @@ function calculateContractStatus(status: 'ACTIVE' | 'EXPIRED' | 'PENDING', endDa
   return 'Aktif'
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // Fetch contracts from Supabase via Prisma with related user data
+    console.log('Fetching contracts from database...')
+    
+    // Fetch all contracts from database
     const contracts = await prisma.contract.findMany({
       include: {
-        user: {
+        user: {  // Pastikan ini 'user' bukan 'User'
           select: {
             username: true,
             email: true,
             role: true
           }
-        }
+        },
+        validations: true
       },
       orderBy: {
-        uploadedAt: 'desc'
+        uploadedAt: "desc"
       }
     })
 
+    console.log(`Found ${contracts.length} contracts`)
+
     // Transform data to match frontend interface
     const transformedContracts = contracts.map(contract => ({
-      id: contract.id, // Keep as number
+      id: contract.id.toString(),
       title: contract.title,
       parties: contract.parties,
       category: contract.category,
@@ -47,21 +52,23 @@ export async function GET() {
       value: contract.value,
       startDate: contract.startDate.toISOString().split('T')[0],
       endDate: contract.endDate.toISOString().split('T')[0],
-      expiration: contract.endDate.toISOString().split('T')[0], // For backward compatibility
       uploadedAt: contract.uploadedAt.toISOString().split('T')[0],
       fileUrl: contract.fileUrl,
       contractData: contract.contractData,
       user: contract.user
     }))
 
-    return NextResponse.json({
-      success: true,
-      data: transformedContracts
-    })
+    return NextResponse.json(transformedContracts)
   } catch (error) {
     console.error('Error fetching contracts:', error)
+    
+    // Return more detailed error information
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch contracts' },
+      { 
+        error: 'Failed to fetch contracts',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
@@ -70,40 +77,20 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { 
-      title, 
-      parties, 
-      category, 
-      status = 'PENDING', 
-      value, 
-      startDate, 
-      endDate, 
-      fileUrl = '',
-      contractData = {},
-      userId 
-    } = body
-
-    // Validate required fields
-    if (!title || !parties || !category || !startDate || !endDate || !userId) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields: title, parties, category, startDate, endDate, userId' },
-        { status: 400 }
-      )
-    }
-
-    // Create new contract in Supabase
-    const newContract = await prisma.contract.create({
+    console.log('Creating new contract:', body)
+    
+    const contract = await prisma.contract.create({
       data: {
-        title,
-        parties,
-        category,
-        status: status as 'ACTIVE' | 'EXPIRED' | 'PENDING',
-        value: parseFloat(value) || 0,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
-        fileUrl,
-        contractData,
-        userId: parseInt(userId)
+        title: body.title,
+        parties: body.parties,
+        category: body.category,
+        status: body.status || 'PENDING',
+        value: body.value ? parseFloat(body.value) : null,
+        startDate: new Date(body.startDate),
+        endDate: new Date(body.endDate),
+        fileUrl: body.fileUrl,
+        contractData: body.contractData,
+        userId: parseInt(body.userId)
       },
       include: {
         user: {
@@ -112,18 +99,34 @@ export async function POST(request: NextRequest) {
             email: true,
             role: true
           }
-        }
+        },
+        validations: true
       }
     })
 
+    console.log('Contract created successfully:', contract.id)
+
     return NextResponse.json({
-      success: true,
-      contract: newContract
+      id: contract.id.toString(),
+      title: contract.title,
+      parties: contract.parties,
+      category: contract.category,
+      status: calculateContractStatus(contract.status, contract.endDate),
+      value: contract.value,
+      startDate: contract.startDate.toISOString().split('T')[0],
+      endDate: contract.endDate.toISOString().split('T')[0],
+      uploadedAt: contract.uploadedAt.toISOString().split('T')[0],
+      fileUrl: contract.fileUrl,
+      contractData: contract.contractData,
+      user: contract.user
     }, { status: 201 })
   } catch (error) {
     console.error('Error creating contract:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to create contract' },
+      { 
+        error: 'Failed to create contract',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

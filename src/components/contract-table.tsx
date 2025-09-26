@@ -245,7 +245,6 @@ export function ContractTable({
               <TableHead>Parties Involved</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Preview</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -268,15 +267,6 @@ export function ContractTable({
                     <Badge className={getStatusBadgeClass(contract.status)}>
                       {contract.status}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={contract.fileUrl}
-                      className="text-primary hover:underline"
-                      prefetch={false}
-                    >
-                      View
-                    </Link>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
