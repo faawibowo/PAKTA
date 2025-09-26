@@ -41,7 +41,7 @@ export function SmartDashboard() {
     if (!hasAccess || loading || error) return
 
     const today = new Date()
-    const expiringContracts = contracts.filter((contract) => {
+    const expiringContracts = (contracts || []).filter((contract) => {
       const endDate = new Date(contract.endDate)
       const timeUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       // Kontrak yang akan berakhir dalam 30 hari ke depan
@@ -126,7 +126,7 @@ export function SmartDashboard() {
   }
 
   // Chart data - using real contracts from database
-  const contractsByCategory = contracts.reduce(
+  const contractsByCategory = (contracts || []).reduce(
     (acc, contract) => {
       acc[contract.category] = (acc[contract.category] || 0) + 1
       return acc
@@ -140,7 +140,7 @@ export function SmartDashboard() {
     fill: `hsl(${(index * 45) % 360}, 70%, 50%)`, // Generate different colors
   }))
 
-  const contractsByStatus = contracts.reduce(
+  const contractsByStatus = (contracts || []).reduce(
     (acc, contract) => {
       acc[contract.status] = (acc[contract.status] || 0) + 1
       return acc
@@ -160,20 +160,21 @@ export function SmartDashboard() {
   }))
 
   // Analytics based on real database data
-  const totalContracts = contracts.length
-  const activeContracts = contracts.filter((c) => c.status === "Aktif").length
+  const contractsArray = contracts || []
+  const totalContracts = contractsArray.length
+  const activeContracts = contractsArray.filter((c) => c.status === "Aktif").length
   const today = new Date()
-  const expiringContracts = contracts.filter((contract) => {
+      const expiringContracts = (contracts || []).filter((contract) => {
     const endDate = new Date(contract.endDate)
     const timeUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
     // Kontrak yang akan berakhir dalam 30 hari ke depan
     return timeUntilExpiry <= 30 && timeUntilExpiry > 0
   }).length
-  const expiredContracts = contracts.filter((c) => c.status === "Kedaluwarsa").length
-  const pendingContracts = contracts.filter((c) => c.status === "Pending").length
-  const topContractValue = contracts.length > 0 ? contracts.reduce((max, contract) => Math.max(max, contract.value), 0) : 0
-  const topContractTitle = contracts.find((c) => c.value === topContractValue)?.title || "Tidak ada data"
-  const totalValue = contracts.reduce((sum, contract) => sum + contract.value, 0)
+  const expiredContracts = contractsArray.filter((c) => c.status === "Kedaluwarsa").length
+  const pendingContracts = contractsArray.filter((c) => c.status === "Pending").length
+  const topContractValue = contractsArray.length > 0 ? contractsArray.reduce((max, contract) => Math.max(max, contract.value), 0) : 0
+  const topContractTitle = contractsArray.find((c) => c.value === topContractValue)?.title || "Tidak ada data"
+  const totalValue = contractsArray.reduce((sum, contract) => sum + contract.value, 0)
 
   // Get most common category
   const mostCommonCategory = Object.entries(contractsByCategory).sort(([,a], [,b]) => b - a)[0]

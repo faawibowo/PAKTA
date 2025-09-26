@@ -50,19 +50,19 @@ model AIContractDraft {
 }
 
 model ContractValidation {
-  id             Int      @id @default(autoincrement())
-  contractId     Int
-  riskPercentage    Float?           @default(0)
-  overallStatus     ValidationStatus @default(PENDING)
-  mandatoryElems Json
-  recommendations   String[]
-  riskDetected      Json             // Keep for full risk objects
-  highRisks         Int              @default(0)  // Count of high risks
-  mediumRisks       Int              @default(0)  // Count of medium risks
-  lowRisks          Int              @default(0)   // Count of low risks
-  analysisDate   DateTime @default(now())
-  validationData   Json?
-  contract       Contract @relation("ContractValidations", fields: [contractId], references: [id])
+  id              Int              @id @default(autoincrement())
+  contractId      Int
+  mandatoryElems  Json
+  riskDetected    Json
+  analysisDate    DateTime         @default(now())
+  highRisks       Int              @default(0)
+  lowRisks        Int              @default(0)
+  mediumRisks     Int              @default(0)
+  overallStatus   ValidationStatus @default(PENDING)
+  recommendations String[]
+  riskPercentage  Float?           @default(0)
+  validationData  Json?
+  contract        Contract         @relation("ContractValidations", fields: [contractId], references: [id])
 }
 
 enum UserRole {
@@ -79,8 +79,8 @@ enum ContractStatus {
 
 enum ValidationStatus {
   PENDING
-  VALID      // 0-29% risk
-  WARNING    // 30-69% risk  
-  HIGH_RISK  // 70-100% risk
-  ERROR      // Processing failed
+  VALID
+  WARNING
+  HIGH_RISK
+  ERROR
 }

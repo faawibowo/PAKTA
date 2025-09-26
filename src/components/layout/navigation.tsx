@@ -9,7 +9,6 @@ import { useState } from "react"
 import { useUserRole } from "@/context/user-role-context"
 
 const navigation = [
-  { name: "Contract Vault", href: "/contracts", icon: FileText, roles: ["Law", "Management", "Internal"] },
   { name: "Draft Assistant", href: "/draft", icon: PenTool, roles: ["Law", "Management", "Internal"] },
   { name: "Validation", href: "/validation", icon: Shield, roles: ["Law", "Management", "Internal"] },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Management", "Internal"] },

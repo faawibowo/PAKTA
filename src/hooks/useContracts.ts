@@ -38,8 +38,12 @@ export function useContracts() {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      const data = await response.json()
-      setContracts(data)
+      const result = await response.json()
+      if (result.success) {
+        setContracts(result.data)
+      } else {
+        throw new Error(result.message || 'Failed to fetch contracts')
+      }
     } catch (err) {
       console.error('Error fetching contracts:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch contracts')
@@ -62,9 +66,14 @@ export function useContracts() {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const newContract = await response.json()
-      setContracts(prev => [newContract, ...prev])
-      return newContract
+      const result = await response.json()
+      if (result.success) {
+        const newContract = result.contract
+        setContracts(prev => [newContract, ...prev])
+        return newContract
+      } else {
+        throw new Error(result.message || 'Failed to add contract')
+      }
     } catch (err) {
       console.error('Error adding contract:', err)
       throw err

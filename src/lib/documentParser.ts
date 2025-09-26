@@ -1,24 +1,30 @@
-import * as pdfjsLib from 'pdfjs-dist';
-import "pdfjs-dist/web/pdf_viewer.css";
-import { Document, Page, pdfjs } from "react-pdf";
+// Dynamic imports to avoid SSR issues
+let pdfjs: any = null;
 
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url,
-).toString();
-
-// if (typeof window !== 'undefined') {
-//   pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
-// }
+// Initialize PDF.js only on client side
+const initializePdfJs = async () => {
+  if (typeof window !== 'undefined' && !pdfjs) {
+    const reactPdf = await import('react-pdf');
+    pdfjs = reactPdf.pdfjs;
+    
+    // Set worker source to local file to match react-pdf version
+    pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs';
+  }
+};
 
 export async function extractTextFromFile(file: File): Promise<string> {
+  // Only run on client side
+  if (typeof window === 'undefined') {
+    throw new Error('File parsing is only available on the client side');
+  }
+
   const fileType = file.type;
   const fileName = file.name.toLowerCase();
   
   try {
     // Handle PDF files
     if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      await initializePdfJs();
       return await extractTextFromPDF(file);
     }
     
@@ -44,8 +50,12 @@ export async function extractTextFromFile(file: File): Promise<string> {
 }
 
 async function extractTextFromPDF(file: File): Promise<string> {
+  if (!pdfjs) {
+    throw new Error('PDF.js not initialized');
+  }
+  
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const pdf = await pdfjs.getDocument(arrayBuffer).promise;
   let fullText = '';
 
   for (let i = 1; i <= pdf.numPages; i++) {

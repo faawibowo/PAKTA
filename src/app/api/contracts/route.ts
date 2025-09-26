@@ -39,7 +39,7 @@ export async function GET() {
 
     // Transform data to match frontend interface
     const transformedContracts = contracts.map(contract => ({
-      id: contract.id.toString(),
+      id: contract.id, // Keep as number
       title: contract.title,
       parties: contract.parties,
       category: contract.category,
@@ -54,11 +54,14 @@ export async function GET() {
       user: contract.user
     }))
 
-    return NextResponse.json(transformedContracts)
+    return NextResponse.json({
+      success: true,
+      data: transformedContracts
+    })
   } catch (error) {
     console.error('Error fetching contracts:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch contracts' },
+      { success: false, error: 'Failed to fetch contracts' },
       { status: 500 }
     )
   }
@@ -83,7 +86,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!title || !parties || !category || !startDate || !endDate || !userId) {
       return NextResponse.json(
-        { error: 'Missing required fields: title, parties, category, startDate, endDate, userId' },
+        { success: false, error: 'Missing required fields: title, parties, category, startDate, endDate, userId' },
         { status: 400 }
       )
     }
@@ -113,11 +116,14 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(newContract, { status: 201 })
+    return NextResponse.json({
+      success: true,
+      contract: newContract
+    }, { status: 201 })
   } catch (error) {
     console.error('Error creating contract:', error)
     return NextResponse.json(
-      { error: 'Failed to create contract' },
+      { success: false, error: 'Failed to create contract' },
       { status: 500 }
     )
   }
