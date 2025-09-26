@@ -19,28 +19,30 @@ export async function POST(req: NextRequest) {
       apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const prompt = `
-You are a contract generator.
-Take the following text and produce a legally formatted contract.
-Return EXACTLY in JSON format with keys:
-{
-  "title": "string",
-  "parties": ["string"],
-  "content": "string",
-  "effective_date": "YYYY-MM-DD"
-}
-Do NOT add any extra text outside JSON.
+    const systemPrompt = `
+You are an expert contract drafting assistant. You help generate professional, comprehensive, and legally sound contracts.
 
-Text:
-${message}
+Your task is to enhance and expand contract templates based on the provided information. 
+
+Guidelines:
+1. Always maintain professional legal language
+2. Include all provided details accurately
+3. Add relevant legal clauses based on the contract type
+4. Ensure proper contract structure and formatting
+5. Add warnings or notes for important legal considerations
+6. Use HTML formatting with proper paragraph tags
+7. Be comprehensive but clear and readable
+8. Include standard legal protections and clauses
+
+Return ONLY the HTML contract content without any additional explanation or text outside the contract.
 `;
 
     const response = await llm.invoke([
-      { role: "system", content: "You are a strict JSON contract generator." },
-      { role: "user", content: prompt },
+      { role: "system", content: systemPrompt },
+      { role: "user", content: message },
     ]);
 
-    // Ambil konten sebagai string
+    // Extract content as string
     let textOutput: string;
     if (typeof response.content === "string") {
       textOutput = response.content;
@@ -50,19 +52,29 @@ ${message}
       textOutput = "";
     }
 
-    // Parse JSON
-    let parsed;
-    try {
-      parsed = JSON.parse(textOutput);
-    } catch (err) {
-      return NextResponse.json(
-        { error: "Failed to parse JSON from Gemini output", raw: textOutput },
-        { status: 500 },
-      );
+    // Clean up the response - remove any markdown formatting if present
+    textOutput = textOutput
+      .replace(/```html\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim();
+
+    // Check if the response looks like HTML, if not, wrap it in paragraphs
+    if (!textOutput.includes('<p>') && !textOutput.includes('<div>')) {
+      textOutput = textOutput.split('\n').map(line => 
+        line.trim() ? `<p>${line.trim()}</p>` : ''
+      ).join('\n');
     }
 
-    return NextResponse.json(parsed);
+    return NextResponse.json({ 
+      content: textOutput,
+      success: true 
+    });
+
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Contract generation error:', err);
+    return NextResponse.json({ 
+      error: err.message || 'Failed to generate contract',
+      success: false 
+    }, { status: 500 });
   }
 }
