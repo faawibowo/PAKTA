@@ -1,3 +1,4 @@
+// src/components/ContractModal.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -10,11 +11,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// Dynamic import PDF viewer, disable SSR
-const ContractPdfViewer = dynamic(
-  () => import("../components/contract-pdf-viewer"),
-  { ssr: false },
-);
+const ContractPdfViewer = dynamic(() => import("./contract-pdf-viewer"), {
+  ssr: false,
+});
 
 interface PreviewContractModalProps {
   contract: Contract | null;
@@ -31,7 +30,7 @@ export function PreviewContractModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="w-full max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{contract.title}</DialogTitle>
           <DialogDescription>
@@ -39,10 +38,14 @@ export function PreviewContractModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-4 mt-4">
-          {contract.fileUrl && <ContractPdfViewer fileUrl={contract.fileUrl} />}
+        <div className="flex flex-col md:flex-row gap-6 mt-4">
+          {contract.fileUrl && (
+            <div className="w-full min-w-0 max-h-[80vh] overflow-auto">
+              <ContractPdfViewer fileUrl={contract.fileUrl} />
+            </div>
+          )}
 
-          <div className="w-1/2 space-y-2">
+          <div className="w-full min-w-0 space-y-3 overflow-auto p-2 border rounded">
             <p>
               <strong>Parties:</strong> {contract.parties}
             </p>

@@ -25,7 +25,15 @@ Analyze the following contract text and extract:
 
 1. Mandatory Elements (mark Present or Missing)
 2. Identified Risks (High, Medium, Low with description and section)
-3. Recommendations to improve the contract
+3. Risk Percentage (0-100): Calculate overall risk level based on missing mandatory elements and severity of identified risks
+4. Recommendations to improve the contract
+
+Calculation Guidelines for Risk Percentage:
+- Missing mandatory elements: +20% each
+- High severity risks: +15% each
+- Medium severity risks: +10% each  
+- Low severity risks: +5% each
+- Cap at 100% maximum
 
 Contract Text:
 ${message}
@@ -62,6 +70,10 @@ ${message}
                 propertyOrdering: ["severity", "description", "section"],
               },
             },
+            riskPercentage: {
+              type: Type.NUMBER,
+              description: "Overall risk percentage from 0 to 100"
+            },
             recommendations: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
@@ -70,6 +82,7 @@ ${message}
           propertyOrdering: [
             "mandatoryElements",
             "identifiedRisks",
+            "riskPercentage",
             "recommendations",
           ],
         },

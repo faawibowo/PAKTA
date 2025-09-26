@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { PreviewContractModal } from "./contract-modal";
 
 interface User {
   id: number;
@@ -88,6 +89,10 @@ export function ContractTable({
   const canEditContract = (contract: Contract) => {
     return contract.contractData?.formData && contract.contractData?.generatedContent;
   };
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(
+    null,
+  );
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Fetch contracts if not provided via props
   useEffect(() => {
@@ -227,7 +232,7 @@ export function ContractTable({
       </div>
 
       <div className="rounded-md border">
-        <Table>
+        <Table className="w-full">
           <TableHeader>
             <TableRow>
               <TableHead>Contract Title</TableHead>
@@ -241,7 +246,13 @@ export function ContractTable({
           <TableBody>
             {filteredContracts.length > 0 ? (
               filteredContracts.map((contract) => (
-                <TableRow key={contract.id}>
+                <TableRow
+                  key={contract.id}
+                  onClick={() => {
+                    setSelectedContract(contract);
+                    setModalOpen(true);
+                  }}
+                >
                   <TableCell className="font-medium">
                     {contract.title}
                   </TableCell>
@@ -311,6 +322,13 @@ export function ContractTable({
             )}
           </TableBody>
         </Table>
+        {selectedContract && (
+          <PreviewContractModal
+            contract={selectedContract}
+            open={modalOpen}
+            onOpenChange={setModalOpen}
+          />
+        )}
       </div>
     </div>
   );
