@@ -21,7 +21,8 @@ import {
   Code,
   Edit3,
   Archive,
-  Download
+  Download,
+  FileDown
 } from 'lucide-react';
 
 // Import modular components
@@ -40,6 +41,7 @@ import { generateContractDraft } from '@/lib/contract-generator';
 import { calculateSectionProgress } from '@/lib/form-progress-tracker';
 import { useDrafts, SavedDraft } from '@/hooks/use-drafts';
 import { exportToDocx } from '@/lib/docs-export';
+import { exportToPdf } from '@/lib/pdf-export';
 import { toast } from 'sonner';
 
 interface AiDraftingFormModularProps {
@@ -230,6 +232,29 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
       toast.success('Contract exported to DOCX successfully!');
     } catch (error) {
       console.error('Error exporting to DOCX:', error);
+      toast.error('Failed to export contract. Please try again.');
+    }
+  };
+
+  const handleExportPdf = async () => {
+    if (!draft) {
+      toast.error('No draft available to export');
+      return;
+    }
+
+    try {
+      const formValues = form.getValues();
+      const contractTitle = formValues.contractTitle || 'Contract Document';
+      const filename = `${contractTitle.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      await exportToPdf(draft, {
+        title: contractTitle,
+        filename: filename
+      });
+      
+      toast.success('Contract exported to PDF successfully!');
+    } catch (error) {
+      console.error('Error exporting to PDF:', error);
       toast.error('Failed to export contract. Please try again.');
     }
   };
@@ -551,9 +576,9 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                 )}
 
                 <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button variant="outline">
-                    <Eye className="h-4 w-4 mr-2" />
-                    Preview
+                  <Button variant="outline" onClick={handleExportPdf}>
+                    <FileDown className="h-4 w-4 mr-2" />
+                    Export PDF
                   </Button>
                   <Button variant="outline" onClick={handleExportDocx}>
                     <Download className="h-4 w-4 mr-2" />
