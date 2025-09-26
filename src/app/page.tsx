@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -155,9 +156,9 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted">
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
+        <div className="mx-auto container flex h-16 items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Shield className="h-8 w-8 text-primary" />
+            <Image src='/logo-pakta.png' height={32} width={32} alt='Pakta Logo'/>
             <span className="font-bold text-xl">PAKTA</span>
           </div>
         </div>

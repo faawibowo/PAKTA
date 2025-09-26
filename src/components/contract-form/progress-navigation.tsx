@@ -83,7 +83,7 @@ export function ProgressNavigation({
                   <Check className="h-3 w-3 text-green-600" />
                 )}
               </div>
-              <span className="text-xs truncate">{section.name}</span>
+              <span className="text-[10px] truncate">{section.name}</span>
               <Badge 
                 variant={section.isComplete ? "default" : "secondary"}
                 className="text-xs px-1 py-0 h-4"

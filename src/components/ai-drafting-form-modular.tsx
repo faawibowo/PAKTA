@@ -550,8 +550,8 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
 
   return (
     <div className="grid gap-8 grid-cols-1 lg:grid-cols-2">
-      <Card className={`h-fit transition-all duration-300 ${draft ? 'lg:sticky lg:top-4 lg:self-start' : ''}`}>
-        <CardHeader>
+      <Card className={`transition-all duration-300 ${draft ? 'lg:sticky lg:top-4 lg:self-start' : ''}`}>
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="flex items-center gap-2">
             <PenTool className="h-5 w-5" />
             Contract Information
@@ -562,90 +562,91 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
-          <ScrollArea
-            className={`${
-              draft ? 'h-[calc(100vh-16rem)]' : 'h-[calc(100vh-12rem)]'
-            } px-2`}
-          >
-            <div className="pr-4 space-y-6">
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(onSubmit)}
-                  className="space-y-8"
+          {/* Fixed Progress Navigation */}
+          <div className="mb-4 pb-4 border-b">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <ProgressNavigation
+                  sections={sections}
+                  currentSection={currentSection}
+                  onSectionChange={handleSectionChange}
+                  onNext={handleNext}
+                  onPrevious={handlePrevious}
+                  canGoNext={canGoNext}
+                  canGoPrevious={canGoPrevious}
+                />
+
+                {/* Scrollable Content */}
+                <ScrollArea 
+                  className={`${
+                    draft ? 'h-[calc(100vh-24rem)]' : 'h-[calc(100vh-20rem)]'
+                  } px-2`}
                 >
-                  {/* Progress Navigation */}
-                  <ProgressNavigation
-                    sections={sections}
-                    currentSection={currentSection}
-                    onSectionChange={handleSectionChange}
-                    onNext={handleNext}
-                    onPrevious={handlePrevious}
-                    canGoNext={canGoNext}
-                    canGoPrevious={canGoPrevious}
-                  />
+                  <div className="pr-4 space-y-6">
+                    <Tabs value={currentSection} onValueChange={setCurrentSection} className="w-full">
+                      <TabsContent value="parties" className="space-y-6 mt-6">
+                        <PartiesIdentificationSection control={form.control} />
+                      </TabsContent>
 
-                  <Tabs value={currentSection} onValueChange={setCurrentSection} className="w-full">
-                    <TabsContent value="parties" className="space-y-6 mt-6">
-                      <PartiesIdentificationSection control={form.control} />
-                    </TabsContent>
+                      <TabsContent value="scope" className="space-y-6 mt-6">
+                        <ScopeOfWorkSection control={form.control} />
+                      </TabsContent>
 
-                    <TabsContent value="scope" className="space-y-6 mt-6">
-                      <ScopeOfWorkSection control={form.control} />
-                    </TabsContent>
+                      <TabsContent value="commercial" className="space-y-6 mt-6">
+                        <CommercialTermsSection control={form.control} />
+                      </TabsContent>
 
-                    <TabsContent value="commercial" className="space-y-6 mt-6">
-                      <CommercialTermsSection control={form.control} />
-                    </TabsContent>
+                      <TabsContent value="duration" className="space-y-6 mt-6">
+                        <DurationTerminationSection control={form.control} />
+                      </TabsContent>
 
-                    <TabsContent value="duration" className="space-y-6 mt-6">
-                      <DurationTerminationSection control={form.control} />
-                    </TabsContent>
+                      <TabsContent value="operational" className="space-y-6 mt-6">
+                        <OperationalTermsSection control={form.control} />
+                      </TabsContent>
 
-                    <TabsContent value="operational" className="space-y-6 mt-6">
-                      <OperationalTermsSection control={form.control} />
-                    </TabsContent>
+                      <TabsContent value="legal" className="space-y-6 mt-6">
+                        <LegalComplianceSection control={form.control} />
+                      </TabsContent>
 
-                    <TabsContent value="legal" className="space-y-6 mt-6">
-                      <LegalComplianceSection control={form.control} />
-                    </TabsContent>
-
-                    <TabsContent value="ai-enhancement" className="space-y-6 mt-6">
-                      <AiEnhancementSection control={form.control} />
-                    </TabsContent>
-                  </Tabs>
-
-                  <div className="pt-4 space-y-3">
-                    <div className="flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleSaveFormDraft}
-                        disabled={isSavingDraft}
-                        className="flex-1"
-                      >
-                        {isSavingDraft && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        <Archive className="mr-2 h-4 w-4" />
-                        {isSavingDraft ? 'Saving...' : currentDraftId ? 'Update Draft' : 'Save Draft'}
-                      </Button>
-                      <Button
-                        type="submit"
-                        className="flex-1"
-                        disabled={isLoading}
-                      >
-                        {isLoading && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        <Bot className="mr-2 h-4 w-4" />
-                        {isLoading ? 'Generating...' : 'Generate Contract'}
-                      </Button>
-                    </div>
+                      <TabsContent value="ai-enhancement" className="space-y-6 mt-6">
+                        <AiEnhancementSection control={form.control} />
+                      </TabsContent>
+                    </Tabs>
                   </div>
-                </form>
-              </Form>
-            </div>
-          </ScrollArea>
+                </ScrollArea>
+
+                {/* Fixed Action Buttons */}
+                <div className="pt-4 border-t">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSaveFormDraft}
+                      disabled={isSavingDraft}
+                      className="flex-1"
+                    >
+                      {isSavingDraft && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      <Archive className="mr-2 h-4 w-4" />
+                      {isSavingDraft ? 'Saving...' : currentDraftId ? 'Update Draft' : 'Save Draft'}
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={isLoading}
+                    >
+                      {isLoading && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      <Bot className="mr-2 h-4 w-4" />
+                      {isLoading ? 'Generating...' : 'Generate Contract'}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </Form>
+          </div>
         </CardContent>
       </Card>
 
@@ -764,7 +765,7 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                 )}
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground h-full flex flex-col justify-center">
+              <div className="text-center py-8 text-muted-foreground h-full flex flex-col justify-center">
                 <PenTool className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium">No draft generated yet</p>
                 <p className="text-sm">
