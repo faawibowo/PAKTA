@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Quill.js styles */
+@import 'quill/dist/quill.snow.css';
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -140,4 +143,70 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Custom Quill.js theme integration */
+.ql-toolbar.ql-snow {
+  border: 1px solid hsl(var(--border));
+  border-bottom: none;
+  background: hsl(var(--background));
+}
+
+.ql-container.ql-snow {
+  border: 1px solid hsl(var(--border));
+  font-family: inherit;
+}
+
+.ql-editor {
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ql-editor h1, .ql-editor h2, .ql-editor h3 {
+  color: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow {
+  border-color: hsl(var(--border));
+  background: hsl(var(--background));
+}
+
+.dark .ql-container.ql-snow {
+  border-color: hsl(var(--border));
+}
+
+.dark .ql-editor {
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+.dark .ql-toolbar.ql-snow .ql-stroke {
+  stroke: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-fill {
+  fill: hsl(var(--foreground));
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-stroke,
+.dark .ql-toolbar.ql-snow button:focus .ql-stroke,
+.dark .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+  stroke: hsl(var(--primary));
+}
+
+.dark .ql-toolbar.ql-snow button:hover .ql-fill,
+.dark .ql-toolbar.ql-snow button:focus .ql-fill,
+.dark .ql-toolbar.ql-snow button.ql-active .ql-fill {
+  fill: hsl(var(--primary));
+}
+
+/* Quill editor height adjustment */
+.ql-container {
+  min-height: calc(400px - 42px); /* Subtract toolbar height */
+  height: auto;
+}
+
+.ql-editor {
+  min-height: 360px;
 }
