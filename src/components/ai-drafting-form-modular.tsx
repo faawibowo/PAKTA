@@ -19,7 +19,8 @@ import {
   Loader2,
   Eye,
   Code,
-  Edit3
+  Edit3,
+  Archive
 } from 'lucide-react';
 
 // Import modular components
@@ -36,18 +37,30 @@ import { ProgressNavigation } from './contract-form/progress-navigation';
 import { contractFormSchema, ContractFormData } from '@/lib/contract-form-schema';
 import { generateContractDraft } from '@/lib/contract-generator';
 import { calculateSectionProgress } from '@/lib/form-progress-tracker';
+import { useDrafts, SavedDraft } from '@/hooks/use-drafts';
+import { toast } from 'sonner';
 
-export function AiDraftingFormModular() {
+interface AiDraftingFormModularProps {
+  loadedDraft?: SavedDraft | null;
+}
+
+export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProps) {
   const [draft, setDraft] = useState<string | null>(null);
   const [editableDraft, setEditableDraft] = useState<string>("");
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview');
   const [mounted, setMounted] = useState(false);
   const [currentSection, setCurrentSection] = useState('parties');
+  const [currentDraftId, setCurrentDraftId] = useState<number | null>(null);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const quillRef = useRef<any>(null);
+
+  // For demo purposes, using userId = 1. In real app, get from auth context
+  const userId = 1;
+  const { saveDraft, updateDraft } = useDrafts(userId);
 
   useEffect(() => setMounted(true), []);
 
@@ -158,6 +171,17 @@ export function AiDraftingFormModular() {
     },
   });
 
+  // Load draft data when a saved draft is provided
+  useEffect(() => {
+    if (loadedDraft?.content) {
+      form.reset(loadedDraft.content);
+      setCurrentDraftId(loadedDraft.id);
+      
+      // Show success message
+      toast.success(`Loaded draft for ${loadedDraft.companyName}`);
+    }
+  }, [loadedDraft, form]);
+
   // Watch form values for progress tracking
   const watchedValues = useWatch({ control: form.control });
   const sections = calculateSectionProgress(watchedValues);
@@ -183,6 +207,42 @@ export function AiDraftingFormModular() {
   const handleSaveDraft = () => {
     // Add logic to save to backend/vault here
     console.log('Saving draft to vault:', draft);
+  };
+
+  const handleSaveFormDraft = async () => {
+    const formValues = form.getValues();
+    setIsSavingDraft(true);
+
+    try {
+      if (currentDraftId) {
+        // Update existing draft
+        const savedDraft = await updateDraft(
+          currentDraftId,
+          formValues,
+          formValues.partyAName || 'Untitled Contract',
+          formValues.serviceType || 'General Contract'
+        );
+        if (savedDraft) {
+          toast.success('Draft updated successfully!');
+        }
+      } else {
+        // Save new draft
+        const savedDraft = await saveDraft(
+          formValues,
+          formValues.partyAName || 'Untitled Contract',
+          formValues.serviceType || 'General Contract'
+        );
+        if (savedDraft) {
+          setCurrentDraftId(savedDraft.id);
+          toast.success('Draft saved successfully!');
+        }
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('Failed to save draft. Please try again.');
+    } finally {
+      setIsSavingDraft(false);
+    }
   };
 
   const handleEditToggle = () => {
@@ -335,17 +395,33 @@ export function AiDraftingFormModular() {
                     </TabsContent>
                   </Tabs>
 
-                  <div className="pt-4">
-                    <Button
-                      type="submit"
-                      className="w-full"
-                      disabled={isLoading}
-                    >
-                      {isLoading && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      {isLoading ? 'Generating AI-Enhanced Contract...' : 'Generate AI-Enhanced Contract Draft'}
-                    </Button>
+                  <div className="pt-4 space-y-3">
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSaveFormDraft}
+                        disabled={isSavingDraft}
+                        className="flex-1"
+                      >
+                        {isSavingDraft && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        <Archive className="mr-2 h-4 w-4" />
+                        {isSavingDraft ? 'Saving...' : currentDraftId ? 'Update Draft' : 'Save Draft'}
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="flex-1"
+                        disabled={isLoading}
+                      >
+                        {isLoading && (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        )}
+                        <Bot className="mr-2 h-4 w-4" />
+                        {isLoading ? 'Generating...' : 'Generate Contract'}
+                      </Button>
+                    </div>
                   </div>
                 </form>
               </Form>
