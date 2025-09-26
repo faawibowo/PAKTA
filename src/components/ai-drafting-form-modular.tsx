@@ -208,9 +208,52 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
     }
   }
 
-  const handleSaveDraft = () => {
-    // Add logic to save to backend/vault here
-    console.log('Saving draft to vault:', draft);
+  const handleSaveDraft = async () => {
+    if (!draft) {
+      toast.error('No contract draft available to save');
+      return;
+    }
+
+    try {
+      const formValues = form.getValues();
+      
+      // Prepare contract data for the Contract schema
+      const contractData = {
+        title: formValues.contractTitle || 'Generated Contract',
+        parties: `${formValues.partyAName} and ${formValues.partyBName}`,
+        category: formValues.serviceType || 'General Contract',
+        value: parseFloat(formValues.contractValue) || 0.0,
+        startDate: formValues.startDate || new Date().toISOString(),
+        endDate: formValues.endDate || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // Default 1 year
+        fileUrl: '', // Generated contracts don't have file URLs
+        contractData: {
+          generatedContent: draft,
+          formData: formValues,
+          generatedAt: new Date().toISOString(),
+        },
+        userId: userId,
+      };
+
+      const response = await fetch('/api/contracts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(contractData),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success('Contract saved to vault successfully!');
+        console.log('Contract saved:', result.contract);
+      } else {
+        throw new Error(result.error || 'Failed to save contract');
+      }
+    } catch (error) {
+      console.error('Error saving contract to vault:', error);
+      toast.error('Failed to save contract to vault. Please try again.');
+    }
   };
 
   const handleExportDocx = async () => {
@@ -586,7 +629,7 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                   </Button>
                   <Button onClick={handleSaveDraft}>
                     <Save className="h-4 w-4 mr-2" />
-                    Save to Vault
+                    Save Contract to Vault
                   </Button>
                 </div>
               </div>
