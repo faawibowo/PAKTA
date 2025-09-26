@@ -186,6 +186,34 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
     }
   }, [loadedDraft, form]);
 
+  // Check for editing contract from sessionStorage (when navigating from vault)
+  useEffect(() => {
+    const editingContractData = sessionStorage.getItem('editingContract');
+    if (editingContractData) {
+      try {
+        const parsedData = JSON.parse(editingContractData);
+        
+        // Populate form fields with the stored formData
+        if (parsedData.formData) {
+          form.reset(parsedData.formData);
+          toast.success(`Loaded contract: ${parsedData.title}`);
+        }
+        
+        // Populate generated content if available
+        if (parsedData.generatedContent) {
+          setDraft(parsedData.generatedContent);
+        }
+        
+        // Clean up sessionStorage after loading
+        sessionStorage.removeItem('editingContract');
+        
+      } catch (error) {
+        console.error('Error parsing editing contract data:', error);
+        toast.error('Failed to load contract data');
+      }
+    }
+  }, [form]);
+
   // Watch form values for progress tracking
   const watchedValues = useWatch({ control: form.control });
   const sections = calculateSectionProgress(watchedValues);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface User {
   id: number;
@@ -37,6 +39,11 @@ export interface Contract {
   status: string;
   fileUrl: string;
   user: User;
+  contractData?: {
+    generatedContent?: string;
+    formData?: any;
+    generatedAt?: string;
+  };
 }
 
 interface ContractTableProps {
@@ -47,6 +54,7 @@ interface ContractTableProps {
 export function ContractTable({
   contracts: initialContracts,
 }: ContractTableProps) {
+  const router = useRouter();
   const [contracts, setContracts] = useState<Contract[]>(
     initialContracts || [],
   );
@@ -54,6 +62,32 @@ export function ContractTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+
+  // Function to handle editing contracts from draft assistant
+  const handleEditContract = (contract: Contract) => {
+    // Check if this contract was created via draft assistant (has contractData with formData and generatedContent)
+    if (contract.contractData?.formData && contract.contractData?.generatedContent) {
+      // Store the contract data in sessionStorage for the draft assistant to pick up
+      sessionStorage.setItem('editingContract', JSON.stringify({
+        id: contract.id,
+        formData: contract.contractData.formData,
+        generatedContent: contract.contractData.generatedContent,
+        title: contract.title
+      }));
+      
+      // Navigate to draft assistant page
+      router.push('/draft?edit=true');
+      toast.info('Loading contract in Draft Assistant...');
+    } else {
+      // For contracts not created via draft assistant, show a message
+      toast.info('This contract was not created via Draft Assistant and cannot be edited here.');
+    }
+  };
+
+  // Check if contract can be edited (created via draft assistant)
+  const canEditContract = (contract: Contract) => {
+    return contract.contractData?.formData && contract.contractData?.generatedContent;
+  };
 
   // Fetch contracts if not provided via props
   useEffect(() => {
@@ -236,15 +270,23 @@ export function ContractTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link
-                            href={`/draft?id=${contract.id}`}
+                        {canEditContract(contract) ? (
+                          <DropdownMenuItem
                             className="flex items-center gap-2"
+                            onClick={() => handleEditContract(contract)}
                           >
                             <Edit className="h-4 w-4" />
                             Edit
-                          </Link>
-                        </DropdownMenuItem>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem
+                            className="flex items-center gap-2 opacity-50 cursor-not-allowed"
+                            disabled
+                          >
+                            <Edit className="h-4 w-4" />
+                            Edit (Not from Draft Assistant)
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                           className="flex items-center gap-2"
                           onClick={() => handleDelete(contract.id)}
