@@ -15,7 +15,7 @@ interface Contract {
   category: string
   status: "valid" | "warning" | "error" | "draft"
   value: number
-  expiration: string // YYYY-MM-DD
+  expiration: string 
 }
 
 const dashboardContracts: Contract[] = [
