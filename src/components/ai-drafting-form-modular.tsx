@@ -20,7 +20,8 @@ import {
   Eye,
   Code,
   Edit3,
-  Archive
+  Archive,
+  Download
 } from 'lucide-react';
 
 // Import modular components
@@ -38,6 +39,7 @@ import { contractFormSchema, ContractFormData } from '@/lib/contract-form-schema
 import { generateContractDraft } from '@/lib/contract-generator';
 import { calculateSectionProgress } from '@/lib/form-progress-tracker';
 import { useDrafts, SavedDraft } from '@/hooks/use-drafts';
+import { exportToDocx } from '@/lib/docs-export';
 import { toast } from 'sonner';
 
 interface AiDraftingFormModularProps {
@@ -207,6 +209,29 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
   const handleSaveDraft = () => {
     // Add logic to save to backend/vault here
     console.log('Saving draft to vault:', draft);
+  };
+
+  const handleExportDocx = async () => {
+    if (!draft) {
+      toast.error('No draft available to export');
+      return;
+    }
+
+    try {
+      const formValues = form.getValues();
+      const contractTitle = formValues.contractTitle || 'Contract Document';
+      const filename = `${contractTitle.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.docx`;
+      
+      await exportToDocx(draft, {
+        title: contractTitle,
+        filename: filename
+      });
+      
+      toast.success('Contract exported to DOCX successfully!');
+    } catch (error) {
+      console.error('Error exporting to DOCX:', error);
+      toast.error('Failed to export contract. Please try again.');
+    }
   };
 
   const handleSaveFormDraft = async () => {
@@ -529,6 +554,10 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                   <Button variant="outline">
                     <Eye className="h-4 w-4 mr-2" />
                     Preview
+                  </Button>
+                  <Button variant="outline" onClick={handleExportDocx}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export DOCX
                   </Button>
                   <Button onClick={handleSaveDraft}>
                     <Save className="h-4 w-4 mr-2" />

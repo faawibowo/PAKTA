@@ -2,12 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Eye, Edit3, FileText, Code, Save } from "lucide-react";
+import { Eye, Edit3, FileText, Code, Save, Download } from "lucide-react";
+import { exportToDocx } from "@/lib/docs-export";
+import { toast } from "sonner";
 
 interface DraftPreviewProps {
   draft: string | null;
   isEditing: boolean;
   viewMode: "preview" | "html";
+  contractTitle?: string;
   onEditToggle: () => void;
   onSaveDraft: (content?: string) => void;
   onCancelEdit: () => void;
@@ -18,6 +21,7 @@ export function DraftPreview({
   draft,
   isEditing,
   viewMode,
+  contractTitle,
   onEditToggle,
   onSaveDraft,
   onCancelEdit,
@@ -25,6 +29,28 @@ export function DraftPreview({
 }: DraftPreviewProps) {
   const [mounted, setMounted] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const handleExportDocx = async () => {
+    if (!draft) {
+      toast.error('No draft available to export');
+      return;
+    }
+
+    try {
+      const title = contractTitle || 'Contract Document';
+      const filename = `${title.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.docx`;
+      
+      await exportToDocx(draft, {
+        title: title,
+        filename: filename
+      });
+      
+      toast.success('Contract exported to DOCX successfully!');
+    } catch (error) {
+      console.error('Error exporting to DOCX:', error);
+      toast.error('Failed to export contract. Please try again.');
+    }
+  };
   const quillRef = useRef<any>(null);
 
   useEffect(() => setMounted(true), []);
@@ -239,13 +265,9 @@ export function DraftPreview({
       )}
 
       <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
-        <Button variant="outline">
-          <Eye className="h-4 w-4 mr-2" />
-          Preview
-        </Button>
-        <Button>
-          <Save className="h-4 w-4 mr-2" />
-          Save to Vault
+        <Button variant="outline" onClick={handleExportDocx}>
+          <Download className="h-4 w-4 mr-2" />
+          Export DOCX
         </Button>
       </div>
     </div>
