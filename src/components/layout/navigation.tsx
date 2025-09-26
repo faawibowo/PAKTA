@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { FileText, PenTool, Shield, BarChart3, Settings, Menu, LogOut, Archive } from "lucide-react"
 import { useState } from "react"
@@ -39,7 +39,7 @@ export function Navigation() {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <Shield className="h-8 w-8 text-primary" />
+              <Image src='/logo-pakta.png' height={32} width={32} alt='Pakta Logo'/>
               <span className="font-bold text-xl text-foreground">PAKTA</span>
             </Link>
           </div>

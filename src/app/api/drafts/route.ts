@@ -3,7 +3,7 @@ import { PrismaClient } from '@/generated/prisma';
 
 const prisma = new PrismaClient();
 
-// GET - Retrieve all drafts for a user
+// GET - Retrieve all drafts for a user (including contracts with generated content)
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -16,7 +16,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const drafts = await prisma.aIContractDraft.findMany({
+    // First, get contracts from this user
+    const allContracts = await prisma.contract.findMany({
+      where: {
+        userId: parseInt(userId)
+      },
+      orderBy: {
+        id: 'desc'
+      },
+      include: {
+        user: true
+      }
+    });
+
+    // Filter contracts that have generated content (from draft assistant)
+    const contractsWithContent = allContracts.filter(contract => {
+      const contractData = contract.contractData as any;
+      return contractData && contractData.generatedContent && contractData.formData;
+    });
+
+    // Then get pure drafts (form data only)
+    const pureDrafts = await prisma.aIContractDraft.findMany({
       where: {
         userId: parseInt(userId)
       },
@@ -25,7 +45,34 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.json({ drafts });
+    // Transform contracts to match the draft interface
+    const contractDrafts = contractsWithContent.map(contract => {
+      const contractData = contract.contractData as any;
+      return {
+        id: contract.id,
+        companyName: contract.title,
+        contractType: contract.category,
+        duration: 12, // Default duration
+        content: contractData.formData || {},
+        status: 'COMPLETED', // Mark as completed since it has generated content
+        userId: contract.userId,
+        generatedContent: contractData.generatedContent, // Include the generated content
+        generatedAt: contractData.generatedAt,
+        contractId: contract.id, // Mark this as coming from contract table
+        type: 'contract' // Distinguish from pure drafts
+      };
+    });
+
+    // Transform pure drafts
+    const formDrafts = pureDrafts.map(draft => ({
+      ...draft,
+      type: 'draft' // Distinguish from contracts
+    }));
+
+    // Combine and sort by ID (most recent first)
+    const allDrafts = [...contractDrafts, ...formDrafts].sort((a, b) => b.id - a.id);
+
+    return NextResponse.json({ drafts: allDrafts });
   } catch (error) {
     console.error('Error fetching drafts:', error);
     return NextResponse.json(

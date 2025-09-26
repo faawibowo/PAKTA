@@ -54,6 +54,7 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
+  const [isSavingToVault, setIsSavingToVault] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'html'>('preview');
   const [mounted, setMounted] = useState(false);
   const [currentSection, setCurrentSection] = useState('parties');
@@ -181,8 +182,14 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
       form.reset(loadedDraft.content);
       setCurrentDraftId(loadedDraft.id);
       
-      // Show success message
-      toast.success(`Loaded draft for ${loadedDraft.companyName}`);
+      // If the draft has generated content, load it directly
+      if (loadedDraft.generatedContent) {
+        setDraft(loadedDraft.generatedContent);
+        toast.success(`Loaded contract for ${loadedDraft.companyName} with generated content`);
+      } else {
+        // Only show this message for pure drafts without generated content
+        toast.success(`Loaded draft for ${loadedDraft.companyName}`);
+      }
     }
   }, [loadedDraft, form]);
 
@@ -242,6 +249,8 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
       return;
     }
 
+    setIsSavingToVault(true);
+    
     try {
       const formValues = form.getValues();
       const contractTitle = formValues.contractTitle || 'Generated Contract';
@@ -368,6 +377,8 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
     } catch (error) {
       console.error('Error saving contract to vault:', error);
       toast.error('Failed to save contract to vault. Please try again.');
+    } finally {
+      setIsSavingToVault(false);
     }
   };
 
@@ -649,17 +660,13 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4">
-          <ScrollArea className="h-[calc(100vh-12rem)]">
+          <div className="h-[calc(100vh-12rem)] flex flex-col">
             {draft ? (
-              <div className="space-y-4">
+              <div className="flex flex-col h-full">
                 {!isEditing ? (
                   <>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-4 flex-shrink-0">
                       <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <Eye className="h-4 w-4" />
-                          <span className="text-sm font-medium">Preview Mode</span>
-                        </div>
                         <div className="flex items-center border rounded-md">
                           <Button
                             variant={viewMode === 'preview' ? 'default' : 'ghost'}
@@ -691,21 +698,45 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                       </Button>
                     </div>
 
-                    {viewMode === 'preview' ? (
-                      <div className="prose dark:prose-invert max-w-none text-foreground pr-4">
-                        <div dangerouslySetInnerHTML={{ __html: draft }} />
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-muted rounded-md">
-                        <pre className="text-sm text-muted-foreground whitespace-pre-wrap overflow-auto max-h-96">
-                          {draft}
-                        </pre>
-                      </div>
-                    )}
+                    <div className="flex-1 overflow-auto mb-4">
+                      {viewMode === 'preview' ? (
+                        <div className="prose dark:prose-invert max-w-none text-foreground">
+                          <div dangerouslySetInnerHTML={{ __html: draft }} />
+                        </div>
+                      ) : (
+                        <div className="p-4 bg-muted rounded-md h-full">
+                          <pre className="text-sm text-muted-foreground whitespace-pre-wrap overflow-auto h-full">
+                            {draft}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap justify-end gap-2 pt-4 border-t flex-shrink-0">
+                      <Button variant="outline" onClick={handleExportPdf} size="sm">
+                        <FileDown className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </Button>
+                      <Button variant="outline" onClick={handleExportDocx} size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export DOCX
+                      </Button>
+                      <Button 
+                        onClick={handleSaveDraft} 
+                        disabled={isSavingToVault}
+                        size="sm"
+                      >
+                        {isSavingToVault && (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        )}
+                        <Save className="h-4 w-4 mr-2" />
+                        {isSavingToVault ? 'Saving...' : 'Save to Vault'}
+                      </Button>
+                    </div>
                   </>
                 ) : (
                   <>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-4 flex-shrink-0">
                       <div className="flex items-center gap-2">
                         <Edit3 className="h-4 w-4" />
                         <span className="text-sm font-medium">Edit Mode</span>
@@ -723,30 +754,14 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                         </Button>
                       </div>
                     </div>
-                    <div className="border rounded-md overflow-hidden">
+                    <div className="border rounded-md overflow-hidden flex-1">
                       <div 
                         ref={editorRef}
-                        className="min-h-[400px] bg-white"
-                        style={{ height: '400px' }}
+                        className="min-h-[400px] bg-white h-full"
                       />
                     </div>
                   </>
                 )}
-
-                <div className="flex justify-end gap-2 pt-4 border-t">
-                  <Button variant="outline" onClick={handleExportPdf}>
-                    <FileDown className="h-4 w-4 mr-2" />
-                    Export PDF
-                  </Button>
-                  <Button variant="outline" onClick={handleExportDocx}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Export DOCX
-                  </Button>
-                  <Button onClick={handleSaveDraft}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save to Vault (Contract + Draft)
-                  </Button>
-                </div>
               </div>
             ) : (
               <div className="text-center py-12 text-muted-foreground h-full flex flex-col justify-center">
@@ -758,7 +773,7 @@ export function AiDraftingFormModular({ loadedDraft }: AiDraftingFormModularProp
                 </p>
               </div>
             )}
-          </ScrollArea>
+          </div>
         </CardContent>
       </Card>
     </div>

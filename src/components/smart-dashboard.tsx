@@ -243,7 +243,7 @@ export function SmartDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <p className="text-6xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+              <p className="text-6xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text">
                 {totalContracts}
               </p>
             </div>

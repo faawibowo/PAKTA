@@ -9,6 +9,10 @@ export interface SavedDraft {
   content: ContractFormData;
   status: string;
   userId: number;
+  generatedContent?: string; // Optional: only present for contracts with generated content
+  generatedAt?: string; // Optional: timestamp when content was generated
+  contractId?: number; // Optional: reference to contract table
+  type?: 'contract' | 'draft'; // Optional: distinguishes between contracts and pure drafts
 }
 
 export function useDrafts(userId: number) {
@@ -131,14 +135,17 @@ export function useDrafts(userId: number) {
     }
   }, [userId, fetchDrafts]);
 
-  const deleteDraft = useCallback(async (id: number): Promise<boolean> => {
+  const deleteDraft = useCallback(async (id: number, type: string = 'draft'): Promise<boolean> => {
     if (!userId) return false;
     
     setIsLoading(true);
     setError(null);
     
     try {
-      const response = await fetch(`/api/drafts?id=${id}&userId=${userId}`, {
+      // Use different API endpoints based on type
+      const apiEndpoint = type === 'contract' ? `/api/contracts?id=${id}` : `/api/drafts?id=${id}&userId=${userId}`;
+      
+      const response = await fetch(apiEndpoint, {
         method: 'DELETE',
       });
       

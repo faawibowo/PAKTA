@@ -38,9 +38,9 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
     fetchDrafts();
   }, [fetchDrafts]);
 
-  const handleDeleteDraft = async (id: number, companyName: string) => {
+  const handleDeleteDraft = async (id: number, companyName: string, type: string) => {
     if (window.confirm(`Are you sure you want to delete the draft for "${companyName}"?`)) {
-      const success = await deleteDraft(id);
+      const success = await deleteDraft(id, type);
       if (success) {
         toast.success('Draft deleted successfully!');
       } else {
@@ -52,7 +52,16 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
   const filteredDrafts = drafts.filter(draft => {
     const matchesSearch = draft.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          draft.contractType.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || draft.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    let matchesStatus = true;
+    if (statusFilter === 'completed') {
+      matchesStatus = draft.type === 'contract' && !!draft.generatedContent;
+    } else if (statusFilter === 'draft') {
+      matchesStatus = draft.type === 'draft' || !draft.generatedContent;
+    } else if (statusFilter !== 'all') {
+      matchesStatus = draft.status.toLowerCase() === statusFilter.toLowerCase();
+    }
+    
     return matchesSearch && matchesStatus;
   });
 
@@ -115,8 +124,8 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="complete">Complete</SelectItem>
+                  <SelectItem value="draft">Form Only</SelectItem>
+                  <SelectItem value="completed">With Content</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -145,7 +154,7 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
             ) : (
               <div className="divide-y">
                 {filteredDrafts.map((draft) => (
-                  <div key={draft.id} className="p-4 hover:bg-muted/50 transition-colors">
+                  <div key={`${draft.type}-${draft.id}`} className="p-4 hover:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -153,8 +162,17 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
                           <h3 className="font-semibold text-foreground">
                             {draft.companyName}
                           </h3>
-                          <Badge variant={draft.status === 'DRAFT' ? 'secondary' : 'default'}>
-                            {draft.status}
+                          <Badge 
+                            variant={
+                              draft.type === 'contract' && draft.generatedContent 
+                                ? 'default' 
+                                : draft.status === 'DRAFT' 
+                                ? 'secondary' 
+                                : 'default'
+                            }
+                            className=''
+                          >
+                            {draft.type === 'contract' && draft.generatedContent ? 'COMPLETED' : draft.status}
                           </Badge>
                         </div>
                         
@@ -171,6 +189,11 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
 
                         <div className="text-xs text-muted-foreground">
                           Draft ID: #{draft.id}
+                          {draft.type === 'contract' && draft.generatedAt && (
+                            <span className="ml-3">
+                              Content generated: {new Date(draft.generatedAt).toLocaleDateString()}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -182,13 +205,13 @@ export function DraftVault({ onLoadDraft }: DraftVaultProps) {
                             onClick={() => onLoadDraft(draft)}
                           >
                             <Edit className="h-4 w-4 mr-1" />
-                            Continue
+                            {draft.type === 'contract' && draft.generatedContent ? 'Edit Contract' : 'Continue Draft'}
                           </Button>
                         )}
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDeleteDraft(draft.id, draft.companyName)}
+                          onClick={() => handleDeleteDraft(draft.id, draft.companyName, draft.type || 'draft')}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />

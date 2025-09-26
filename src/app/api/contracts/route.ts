@@ -128,3 +128,35 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const contractId = searchParams.get('id')
+
+    if (!contractId) {
+      return NextResponse.json(
+        { success: false, error: 'Contract ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Delete contract from database
+    await prisma.contract.delete({
+      where: {
+        id: parseInt(contractId)
+      }
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Contract deleted successfully'
+    })
+  } catch (error) {
+    console.error('Error deleting contract:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete contract' },
+      { status: 500 }
+    )
+  }
+}

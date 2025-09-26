@@ -8,9 +8,10 @@ import "./globals.css"
 import { UserRoleProvider } from "@/context/user-role-context"
 
 export const metadata: Metadata = {
-  title: "Smart Contract Vault",
+  title: "PAKTA",
   description: "AI-powered contract management and validation platform",
   generator: "v0.app",
+  icons: '/pakta.ico'
 }
 
 export default function RootLayout({
