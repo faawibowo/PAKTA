@@ -1,103 +1,126 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal, Search, Filter, Edit, Trash } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-interface Contract {
-  id: string
-  title: string
-  parties: string
-  category: string
-  status: "valid" | "warning" | "error" | "draft"
-  previewLink: string
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
 }
 
-const initialContracts: Contract[] = [
-  {
-    id: "1",
-    title: "Software Development Agreement",
-    parties: "Acme Corp, Beta Solutions",
-    category: "Software",
-    status: "valid",
-    previewLink: "#",
-  },
-  {
-    id: "2",
-    title: "Non-Disclosure Agreement",
-    parties: "Gamma Inc, Delta LLC",
-    category: "Legal",
-    status: "warning",
-    previewLink: "#",
-  },
-  {
-    id: "3",
-    title: "Service Level Agreement",
-    parties: "Epsilon Ltd, Zeta Co",
-    category: "Services",
-    status: "error",
-    previewLink: "#",
-  },
-  {
-    id: "4",
-    title: "Partnership Agreement",
-    parties: "Theta Corp, Iota Inc",
-    category: "Business",
-    status: "draft",
-    previewLink: "#",
-  },
-  {
-    id: "5",
-    title: "Consulting Agreement",
-    parties: "Kappa LLC, Lambda Ltd",
-    category: "Services",
-    status: "valid",
-    previewLink: "#",
-  },
-]
+export interface Contract {
+  id: number;
+  title: string;
+  parties: string;
+  category: string;
+  status: string;
+  fileUrl: string;
+  user: User;
+}
 
-export function ContractTable() {
-  const [contracts, setContracts] = useState<Contract[]>(initialContracts)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [filterStatus, setFilterStatus] = useState("all")
+interface ContractTableProps {
+  // Optional: if you want to pass contracts from parent
+  contracts?: Contract[];
+}
+
+export function ContractTable({
+  contracts: initialContracts,
+}: ContractTableProps) {
+  const [contracts, setContracts] = useState<Contract[]>(
+    initialContracts || [],
+  );
+  const [loading, setLoading] = useState(!initialContracts);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  // Fetch contracts if not provided via props
+  useEffect(() => {
+    if (!initialContracts) {
+      async function fetchContracts() {
+        setLoading(true);
+        try {
+          const res = await fetch("/api/contracts");
+          const data = await res.json();
+          if (data.success) {
+            setContracts(data.data);
+          } else {
+            console.error("Failed to fetch contracts:", data.message);
+          }
+        } catch (err) {
+          console.error("Error fetching contracts:", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      fetchContracts();
+    }
+  }, [initialContracts]);
 
   const filteredContracts = contracts.filter((contract) => {
     const matchesSearch =
       contract.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       contract.parties.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      contract.category.toLowerCase().includes(searchTerm.toLowerCase())
+      contract.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesCategory = filterCategory === "all" || contract.category.toLowerCase() === filterCategory.toLowerCase()
+    const matchesCategory =
+      filterCategory === "all" ||
+      contract.category.toLowerCase() === filterCategory.toLowerCase();
+    const matchesStatus =
+      filterStatus === "all" ||
+      contract.status.toLowerCase() === filterStatus.toLowerCase();
 
-    const matchesStatus = filterStatus === "all" || contract.status === filterStatus
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
-    return matchesSearch && matchesCategory && matchesStatus
-  })
+  const handleDelete = (id: number) => {
+    setContracts(contracts.filter((contract) => contract.id !== id));
+  };
 
-  const handleDelete = (id: string) => {
-    setContracts(contracts.filter((contract) => contract.id !== id))
-  }
-
-  const getStatusBadgeClass = (status: Contract["status"]) => {
-    switch (status) {
+  const getStatusBadgeClass = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
       case "valid":
-        return "bg-success text-success-foreground"
+        return "bg-success text-success-foreground";
+      case "pending":
       case "warning":
-        return "bg-warning text-warning-foreground"
+        return "bg-warning text-warning-foreground";
+      case "expired":
       case "error":
-        return "bg-error text-error-foreground"
+        return "bg-error text-error-foreground";
       case "draft":
-        return "bg-muted text-muted-foreground"
+        return "bg-muted text-muted-foreground";
       default:
-        return ""
+        return "";
     }
+  };
+
+  if (loading) {
+    return (
+      <p className="text-center text-muted-foreground">Loading contracts...</p>
+    );
   }
 
   return (
@@ -115,7 +138,10 @@ export function ContractTable() {
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2 bg-transparent">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 bg-transparent"
+            >
               <Filter className="h-4 w-4" />
               Filters
             </Button>
@@ -124,35 +150,42 @@ export function ContractTable() {
             <div className="p-2">
               <h4 className="font-medium mb-2">Category</h4>
               <div className="space-y-1">
-                {["All", "Software", "Legal", "Services", "Business"].map((category) => (
-                  <Button
-                    key={category}
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start",
-                      filterCategory.toLowerCase() === category.toLowerCase() && "bg-accent text-accent-foreground",
-                    )}
-                    onClick={() => setFilterCategory(category)}
-                  >
-                    {category}
-                  </Button>
-                ))}
+                {["All", "Software", "Legal", "Services", "Business"].map(
+                  (category) => (
+                    <Button
+                      key={category}
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start",
+                        filterCategory.toLowerCase() ===
+                          category.toLowerCase() &&
+                          "bg-accent text-accent-foreground",
+                      )}
+                      onClick={() => setFilterCategory(category)}
+                    >
+                      {category}
+                    </Button>
+                  ),
+                )}
               </div>
               <h4 className="font-medium mt-4 mb-2">Status</h4>
               <div className="space-y-1">
-                {["All", "Valid", "Warning", "Error", "Draft"].map((status) => (
-                  <Button
-                    key={status}
-                    variant="ghost"
-                    className={cn(
-                      "w-full justify-start",
-                      filterStatus.toLowerCase() === status.toLowerCase() && "bg-accent text-accent-foreground",
-                    )}
-                    onClick={() => setFilterStatus(status)}
-                  >
-                    {status}
-                  </Button>
-                ))}
+                {["All", "Active", "Pending", "Expired", "Draft"].map(
+                  (status) => (
+                    <Button
+                      key={status}
+                      variant="ghost"
+                      className={cn(
+                        "w-full justify-start",
+                        filterStatus.toLowerCase() === status.toLowerCase() &&
+                          "bg-accent text-accent-foreground",
+                      )}
+                      onClick={() => setFilterStatus(status)}
+                    >
+                      {status}
+                    </Button>
+                  ),
+                )}
               </div>
             </div>
           </DropdownMenuContent>
@@ -175,14 +208,22 @@ export function ContractTable() {
             {filteredContracts.length > 0 ? (
               filteredContracts.map((contract) => (
                 <TableRow key={contract.id}>
-                  <TableCell className="font-medium">{contract.title}</TableCell>
+                  <TableCell className="font-medium">
+                    {contract.title}
+                  </TableCell>
                   <TableCell>{contract.parties}</TableCell>
                   <TableCell>{contract.category}</TableCell>
                   <TableCell>
-                    <Badge className={getStatusBadgeClass(contract.status)}>{contract.status}</Badge>
+                    <Badge className={getStatusBadgeClass(contract.status)}>
+                      {contract.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <Link href={contract.previewLink} className="text-primary hover:underline" prefetch={false}>
+                    <Link
+                      href={contract.fileUrl}
+                      className="text-primary hover:underline"
+                      prefetch={false}
+                    >
                       View
                     </Link>
                   </TableCell>
@@ -196,12 +237,18 @@ export function ContractTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/draft?id=${contract.id}`} className="flex items-center gap-2">
+                          <Link
+                            href={`/draft?id=${contract.id}`}
+                            className="flex items-center gap-2"
+                          >
                             <Edit className="h-4 w-4" />
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="flex items-center gap-2" onClick={() => handleDelete(contract.id)}>
+                        <DropdownMenuItem
+                          className="flex items-center gap-2"
+                          onClick={() => handleDelete(contract.id)}
+                        >
                           <Trash className="h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -212,7 +259,10 @@ export function ContractTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="h-24 text-center text-muted-foreground"
+                >
                   No contracts found.
                 </TableCell>
               </TableRow>
@@ -221,5 +271,5 @@ export function ContractTable() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
