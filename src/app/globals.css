@@ -145,6 +145,90 @@
   }
 }
 
+
+.animated-bg::before {
+    content: '';
+    position: fixed;
+    width: 400px;
+    height: 400px;
+    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
+    top: 10%;
+    right: 5%;
+    border-radius: 20px;
+    transform: rotate(15deg);
+    filter: blur(50px);
+    z-index: -10;
+    opacity: 0.2;
+    animation: float1 12s ease-in-out infinite;
+    will-change: transform;
+    pointer-events: none;
+}
+
+.animated-bg::after {
+    content: '';
+    position: fixed;
+    width: 350px;
+    height: 350px;
+    background: linear-gradient(45deg, #5a3e00, #f59e0b);
+    top: 60%;
+    left: 3%;
+    border-radius: 20px;
+    transform: rotate(-25deg);
+    filter: blur(45px);
+    z-index: -10;
+    opacity: 0.2;
+    animation: float2 15s ease-in-out infinite;
+    will-change: transform;
+    pointer-events: none;
+}
+
+/* Card hover effects */
+.card-hover {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* PAKTA Logo Container */
+.pakta-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.pakta-logo-image {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.pakta-logo:hover .pakta-logo-image {
+    transform: scale(1.05);
+}
+
+.pakta-logo-text {
+    font-weight: bold;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6, #ec4899);
+    background-size: 200% 200%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* Page wrapper */
+.page-wrapper {
+    min-height: 100vh;
+    position: relative;
+}
+
+
 /* Custom Quill.js theme integration */
 .ql-toolbar.ql-snow {
   border: 1px solid hsl(var(--border));

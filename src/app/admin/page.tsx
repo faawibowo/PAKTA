@@ -4,6 +4,9 @@ import { MainLayout } from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Settings, Lock } from "lucide-react"
 import { useUserRole } from "@/context/user-role-context"
+import { UserManagementTable } from "@/components/admin/user-management-table"
+import { AdminStatsCards } from "@/components/admin/admin-stats-cards"
+import { Toaster } from "sonner"
 
 export default function AdminPage() {
   const { userRole } = useUserRole()
@@ -29,23 +32,32 @@ export default function AdminPage() {
           <p className="text-muted-foreground mt-2">Role-based access control and administrative functions</p>
         </div>
 
-        <Card>
+        {/* Statistics Cards */}
+        <AdminStatsCards />
+
+        {/* User Management Table */}
+        <UserManagementTable />
+
+        {/* System Settings Card */}
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Admin Interface
+              System Settings
             </CardTitle>
-            <CardDescription>Manage user roles, system settings, and view high-level statistics.</CardDescription>
+            <CardDescription>Configure system-wide settings and preferences.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-12 text-muted-foreground">
               <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Admin features coming soon</p>
-              <p className="text-sm">This section will allow management to configure the system.</p>
+              <p className="text-lg font-medium">System configuration coming soon</p>
+              <p className="text-sm">Advanced settings will be available here.</p>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
+      
+      <Toaster richColors position="top-right" />
     </MainLayout>
   )
 }
