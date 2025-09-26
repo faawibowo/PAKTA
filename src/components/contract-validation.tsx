@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
+import { extractTextFromFile } from '@/lib/documentParser';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Upload,
@@ -43,6 +44,7 @@ interface ValidationResult {
     mandatoryElements: MandatoryElement[];
     risks: Risk[];
     recommendations: string[];
+    riskPercentage?: number;
   };
 }
 
@@ -72,20 +74,22 @@ export function ContractValidation() {
     setUploadProgress(0);
     setValidationResult(null);
 
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 20) {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      setUploadProgress(i);
-    }
-
     try {
-      const text = await file.text();
+      setUploadProgress(25);
+      const text = await extractTextFromFile(file);
+
+      setUploadProgress(50);
 
       const res = await fetch("/api/contract/validation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text,
+          fileName: file.name,     // ← Also pass filename for context
+        fileType: file.type      // ← And file type
+        }),
       });
+
+      setUploadProgress(75);
 
       if (!res.ok) {
         const err = await res.json();
@@ -93,6 +97,7 @@ export function ContractValidation() {
       }
 
       const data = await res.json();
+      setUploadProgress(100);
 
       // Convert mandatoryElements object -> array
       const mandatoryElementsArray: MandatoryElement[] = data.mandatoryElements
@@ -105,8 +110,17 @@ export function ContractValidation() {
           }))
         : [];
 
+      // Determine status based on risk percentage
+      const riskPercentage = data.riskPercentage || 0;
+      let status: "valid" | "warning" | "error" = "valid";
+      if (riskPercentage >= 70) {
+        status = "error";
+      } else if (riskPercentage >= 30) {
+        status = "warning";
+      }
+
       setValidationResult({
-        status: "warning", // bisa diubah sesuai rules atau risiko
+        status,
         message: "Contract analysis completed.",
         details: {
           mandatoryElements: mandatoryElementsArray,
@@ -120,13 +134,14 @@ export function ContractValidation() {
             section: r.section || "",
           })),
           recommendations: data.recommendations || [],
+          riskPercentage: riskPercentage,
         },
       });
     } catch (error: any) {
+      console.error('Validation error:', error);
       alert(error.message);
     } finally {
       setIsUploading(false);
-      setUploadProgress(100);
     }
   };
 
@@ -261,6 +276,36 @@ export function ContractValidation() {
                 </AlertDescription>
               </Alert>
 
+              {/* Risk Percentage Display */}
+              {validationResult.details.riskPercentage !== undefined && (
+                <div className="bg-muted/50 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">Overall Risk Level</h4>
+                    <span className={cn(
+                      "text-lg font-bold",
+                      validationResult.details.riskPercentage >= 70 && "text-red-600",
+                      validationResult.details.riskPercentage >= 30 && validationResult.details.riskPercentage < 70 && "text-yellow-600",
+                      validationResult.details.riskPercentage < 30 && "text-green-600"
+                    )}>
+                      {validationResult.details.riskPercentage}%
+                    </span>
+                  </div>
+                  <Progress 
+                    value={validationResult.details.riskPercentage} 
+                    className={cn(
+                      "h-2",
+                      validationResult.details.riskPercentage >= 70 && "[&>div]:bg-red-600",
+                      validationResult.details.riskPercentage >= 30 && validationResult.details.riskPercentage < 70 && "[&>div]:bg-yellow-600",
+                      validationResult.details.riskPercentage < 30 && "[&>div]:bg-green-600"
+                    )}
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>Low Risk</span>
+                    <span>High Risk</span>
+                  </div>
+                </div>
+              )}
+
               {/* Mandatory Elements */}
               <div>
                 <h3 className="text-lg font-semibold mb-2">
@@ -321,7 +366,7 @@ export function ContractValidation() {
                     {validationResult.details.recommendations.map(
                       (rec, index) => (
                         <li key={index} className="flex items-start gap-2">
-                          <Lightbulb className="h-4 w-4 text-primary mt-1" />
+                          <Lightbulb className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <span>{rec}</span>
                         </li>
                       ),
