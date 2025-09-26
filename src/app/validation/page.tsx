@@ -1,5 +1,6 @@
 import { MainLayout } from "@/components/layout/main-layout"
 import { ContractValidation } from "@/components/contract-validation"
+import ContractUploadForm from "@/components/contract-upload-form"
 
 export default function ValidationPage() {
   return (
