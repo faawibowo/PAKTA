@@ -24,7 +24,7 @@ export async function GET() {
     // Fetch contracts from Supabase via Prisma with related user data
     const contracts = await prisma.contract.findMany({
       include: {
-        User: {
+        user: {
           select: {
             username: true,
             email: true,
@@ -51,7 +51,7 @@ export async function GET() {
       uploadedAt: contract.uploadedAt.toISOString().split('T')[0],
       fileUrl: contract.fileUrl,
       contractData: contract.contractData,
-      user: contract.User
+      user: contract.user
     }))
 
     return NextResponse.json(transformedContracts)
@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         userId: parseInt(userId)
       },
       include: {
-        User: {
+        user: {
           select: {
             username: true,
             email: true,

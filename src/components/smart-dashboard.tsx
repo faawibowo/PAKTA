@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Bell, Lightbulb, Shield, Loader2, AlertCircle } from "lucide-react"
+import { Bell, Lightbulb, Shield, Loader2, AlertCircle, BarChart3, Maximize2 } from "lucide-react"
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Pie, PieChart, Cell, Bar, BarChart, XAxis, YAxis, CartesianGrid, Legend } from "recharts"
 import { useUserRole } from "@/context/user-role-context"
@@ -28,6 +30,7 @@ const getStatusBadgeClass = (status: Contract["status"]) => {
 
 export function SmartDashboard() {
   const [notifications, setNotifications] = useState<string[]>([])
+  const [maximizedChart, setMaximizedChart] = useState<string | null>(null)
   const { userRole } = useUserRole()
   const { contracts, loading, error, refetch } = useContracts()
 
@@ -39,11 +42,10 @@ export function SmartDashboard() {
 
     const today = new Date()
     const expiringContracts = contracts.filter((contract) => {
-      const startDate = new Date(contract.startDate)
       const endDate = new Date(contract.endDate)
-      const contractDuration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
       const timeUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-      return contractDuration < 30 && timeUntilExpiry > 0 // Contracts with duration less than 30 days
+      // Kontrak yang akan berakhir dalam 30 hari ke depan
+      return timeUntilExpiry <= 30 && timeUntilExpiry > 0
     })
 
     if (expiringContracts.length > 0) {
@@ -160,7 +162,13 @@ export function SmartDashboard() {
   // Analytics based on real database data
   const totalContracts = contracts.length
   const activeContracts = contracts.filter((c) => c.status === "Aktif").length
-  const expiringContracts = contracts.filter((c) => c.status === "Akan Jatuh Tempo").length
+  const today = new Date()
+  const expiringContracts = contracts.filter((contract) => {
+    const endDate = new Date(contract.endDate)
+    const timeUntilExpiry = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    // Kontrak yang akan berakhir dalam 30 hari ke depan
+    return timeUntilExpiry <= 30 && timeUntilExpiry > 0
+  }).length
   const expiredContracts = contracts.filter((c) => c.status === "Kedaluwarsa").length
   const pendingContracts = contracts.filter((c) => c.status === "Pending").length
   const topContractValue = contracts.length > 0 ? contracts.reduce((max, contract) => Math.max(max, contract.value), 0) : 0
@@ -174,124 +182,284 @@ export function SmartDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Notifications with Bell Icon in Header */}
+      {/* Bell Notification Icon with Badge */}
       {notifications.length > 0 && (
-        <Alert className="border-yellow-500 bg-yellow-50 text-yellow-800">
-          <div className="flex items-center gap-2">
-            <Bell className="h-5 w-5 text-yellow-600" />
-            <AlertTitle className="mb-0">🔔 Notifikasi Kontrak Akan Berakhir</AlertTitle>
+        <div className="absolute top-4 right-25 z-10">
+          <div className="relative group">
+            {/* Bell Icon with animated ring effect */}
+            <div className="relative p-2 bg-yellow-50 rounded-full border-2 border-yellow-200 hover:bg-yellow-100 transition-colors cursor-pointer">
+              <Bell 
+                className="h-4 w-4 text-yellow-600 animate-pulse" 
+              />
+              
+              {/* Notification Badge */}
+              <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[15px] h-4 flex items-center justify-center px-1 shadow-lg">
+                {notifications.length > 99 ? '99+' : notifications.length}
+              </div>
+            </div>
+            
+            {/* Hover Tooltip with Notification Details */}
+            <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+              <div className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Bell className="h-4 w-4 text-yellow-600" />
+                  <span className="font-semibold text-gray-900">
+                    {notifications.length} Kontrak Akan Berakhir
+                  </span>
+                </div>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {notifications.slice(0, 5).map((notification, index) => (
+                    <div key={index} className="text-sm text-gray-700 p-2 bg-yellow-50 rounded border-l-4 border-yellow-400">
+                      {notification}
+                    </div>
+                  ))}
+                  {notifications.length > 5 && (
+                    <div className="text-xs text-gray-500 text-center pt-2 border-t">
+                      +{notifications.length - 5} kontrak lainnya
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* Arrow pointer */}
+              <div className="absolute top-0 right-6 transform -translate-y-2">
+                <div className="w-0 h-0 border-l-[8px] border-r-[8px] border-b-[8px] border-l-transparent border-r-transparent border-b-gray-200"></div>
+                <div className="w-0 h-0 border-l-[7px] border-r-[7px] border-b-[7px] border-l-transparent border-r-transparent border-b-white absolute top-px left-px"></div>
+              </div>
+            </div>
           </div>
-          <AlertDescription className="mt-2">
-            <ul className="list-disc pl-5">
-              {notifications.map((notification, index) => (
-                <li key={index}>{notification}</li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
+        </div>
       )}
 
       {/* Analytics Summary Cards - Based on Database Data */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-primary" />
-            Ringkasan Analitik
-          </CardTitle>
-          <CardDescription>Insights dan analisis data kontrak dari database cloud.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h4 className="font-semibold text-gray-700">Total Kontrak</h4>
-            <p className="text-2xl font-bold text-gray-900">{totalContracts}</p>
-            <p className="text-xs text-gray-600">Seluruh kontrak dalam database</p>
-          </div>
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h4 className="font-semibold text-gray-700">Kontrak Aktif</h4>
-            <p className="text-2xl font-bold text-gray-900">{activeContracts}</p>
-            <p className="text-xs text-gray-600">Kontrak yang masih berlaku</p>
-          </div>
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <h4 className="font-semibold text-gray-700">Kedaluwarsa</h4>
-            <p className="text-2xl font-bold text-gray-900">{expiredContracts}</p>
-            <p className="text-xs text-gray-600">Memerlukan tindakan</p>
-          </div>
-          {pendingContracts > 0 && (
-            <div className="border rounded-lg p-4 bg-gray-50">
-              <h4 className="font-semibold text-gray-700">Pending</h4>
-              <p className="text-2xl font-bold text-gray-900">{pendingContracts}</p>
-              <p className="text-xs text-gray-600">Menunggu persetujuan</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="md:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Lightbulb className="h-8 w-8 text-primary" />
+              Total Kontrak
+            </CardTitle>
+            <CardDescription>Seluruh kontrak dalam database</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center">
+              <p className="text-6xl font-bold text-primary bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                {totalContracts}
+              </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+        
+        <Card className="md:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Ringkasan Analitik
+            </CardTitle>
+            <CardDescription>Insights dan analisis data kontrak dari database cloud.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="border rounded-lg p-4 bg-gradient-to-br from-blue-50 to-blue-100">
+                <h4 className="font-semibold text-blue-700">Kontrak Aktif</h4>
+                <p className="text-2xl font-bold text-blue-900">{activeContracts}</p>
+                <p className="text-xs text-blue-600">Kontrak yang masih berlaku</p>
+              </div>
+              <div className="border rounded-lg p-4 bg-gradient-to-br from-red-50 to-red-100">
+                <h4 className="font-semibold text-red-700">Kedaluwarsa</h4>
+                <p className="text-2xl font-bold text-red-900">{expiredContracts}</p>
+                <p className="text-xs text-red-600">Memerlukan tindakan</p>
+              </div>
+              <div className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-yellow-100">
+                <h4 className="font-semibold text-yellow-700">Akan Berakhir</h4>
+                <p className="text-2xl font-bold text-yellow-900">{expiringContracts}</p>
+                <p className="text-xs text-yellow-600">Dalam 30 hari</p>
+              </div>
+                <div className="border rounded-lg p-4 bg-gradient-to-br from-purple-50 to-purple-100">
+                  <h4 className="font-semibold text-purple-700">Pending</h4>
+                  <p className="text-2xl font-bold text-purple-900">{pendingContracts}</p>
+                  <p className="text-xs text-purple-600">Menunggu persetujuan</p>
+                </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Contract Summary Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Kontrak berdasarkan Kategori</CardTitle>
-            <CardDescription>Distribusi kontrak berdasarkan kategori bisnis.</CardDescription>
+          <CardHeader className="relative">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Kontrak berdasarkan Kategori</CardTitle>
+                <CardDescription>Distribusi kontrak berdasarkan kategori bisnis.</CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMaximizedChart(maximizedChart === 'category' ? null : 'category')}
+                className="h-8 w-8 p-0"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="aspect-square h-[300px]">
-              <PieChart>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
-                <Pie
-                  data={categoryChartData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={50}
-                  outerRadius={70}
-                  strokeWidth={2}
-                >
+            <ChartContainer config={{}} className="h-[280px]">
+              <BarChart 
+                data={categoryChartData} 
+                margin={{ top: 20, right: 5, left: 5, bottom: 30 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  tickLine={false} 
+                  tickMargin={8} 
+                  axisLine={false}
+                  angle={-45}
+                  textAnchor="end"
+                  height={50}
+                  interval={0}
+                  fontSize={10}
+                />
+                <YAxis tickLine={false} tickMargin={8} axisLine={false} fontSize={10} />
+                <ChartTooltip 
+                  cursor={false} 
+                  content={<ChartTooltipContent />} 
+                  formatter={(value, name) => [`${value} kontrak`, name]}
+                />
+                <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={40}>
                   {categoryChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
-                </Pie>
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  wrapperStyle={{
-                    paddingTop: '10px',
-                    fontSize: '12px'
-                  }}
-                />
-              </PieChart>
+                </Bar>
+              </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Status Kontrak</CardTitle>
-            <CardDescription>Overview status semua kontrak dalam sistem.</CardDescription>
+          <CardHeader className="relative">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Status Kontrak</CardTitle>
+                <CardDescription>Overview status semua kontrak dalam sistem.</CardDescription>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMaximizedChart(maximizedChart === 'status' ? null : 'status')}
+                className="h-8 w-8 p-0"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={{}} className="aspect-square h-[300px]">
-              <BarChart data={statusChartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="name" tickLine={false} tickMargin={10} axisLine={false} />
-                <YAxis tickLine={false} tickMargin={10} axisLine={false} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <Bar dataKey="value" radius={8}>
+            <ChartContainer config={{}} className="h-[280px]">
+              <BarChart 
+                data={statusChartData} 
+                margin={{ top: 20, right: 5, left: 5, bottom: 30 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  tickLine={false} 
+                  tickMargin={8} 
+                  axisLine={false}
+                  angle={-45}
+                  textAnchor="end"
+                  height={50}
+                  interval={0}
+                  fontSize={10}
+                />
+                <YAxis tickLine={false} tickMargin={8} axisLine={false} fontSize={10} />
+                <ChartTooltip 
+                  cursor={false} 
+                  content={<ChartTooltipContent />}
+                  formatter={(value, name) => [`${value} kontrak`, name]}
+                />
+                <Bar dataKey="value" radius={[3, 3, 0, 0]} maxBarSize={40}>
                   {statusChartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Bar>
-                <Legend 
-                  verticalAlign="bottom" 
-                  height={36}
-                  wrapperStyle={{
-                    paddingTop: '10px',
-                    fontSize: '12px'
-                  }}
-                />
               </BarChart>
             </ChartContainer>
           </CardContent>
         </Card>
       </div>
+
+      {/* Maximized Chart Modal with Blur Background */}
+      {maximizedChart && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Blur Background */}
+          <div 
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setMaximizedChart(null)}
+          />
+          
+          {/* Maximized Chart Content */}
+          <div className="relative bg-white rounded-lg shadow-2xl max-w-6xl max-h-[90vh] overflow-auto m-4">
+            <Card className="border-0 shadow-none">
+              <CardHeader className="relative">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <CardTitle className="text-xl">
+                      {maximizedChart === 'category' ? 'Kontrak berdasarkan Kategori' : 'Status Kontrak'}
+                    </CardTitle>
+                    <CardDescription>
+                      {maximizedChart === 'category' 
+                        ? 'Distribusi kontrak berdasarkan kategori bisnis.' 
+                        : 'Overview status semua kontrak dalam sistem.'
+                      }
+                    </CardDescription>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setMaximizedChart(null)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={{}} className="h-[600px] w-full">
+                  <BarChart 
+                    data={maximizedChart === 'category' ? categoryChartData : statusChartData}
+                    margin={{ top: 20, right: 20, left: 20, bottom: 120 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="name" 
+                      tickLine={false} 
+                      tickMargin={15} 
+                      axisLine={false}
+                      angle={-45}
+                      textAnchor="end"
+                      height={100}
+                      interval={0}
+                      fontSize={12}
+                    />
+                    <YAxis tickLine={false} tickMargin={15} axisLine={false} fontSize={12} />
+                    <ChartTooltip 
+                      cursor={false} 
+                      content={<ChartTooltipContent />} 
+                      formatter={(value, name) => [`${value} kontrak`, name]}
+                    />
+                    <Bar dataKey="value" radius={[4, 4, 0, 0]} maxBarSize={80}>
+                      {(maximizedChart === 'category' ? categoryChartData : statusChartData).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
 
       {/* Additional Insights */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
