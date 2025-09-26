@@ -7,20 +7,24 @@ import { Button } from "@/components/ui/button"
 import { FileText, PenTool, Shield, BarChart3, Settings, Menu, LogIn, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { useUserRole } from "@/context/user-role-context"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const navigation = [
   { name: "Contract Vault", href: "/contracts", icon: FileText, roles: ["Law", "Management", "Internal"] },
   { name: "Draft Assistant", href: "/draft", icon: PenTool, roles: ["Law", "Management"] },
   { name: "Validation", href: "/validation", icon: Shield, roles: ["Law", "Management", "Internal"] },
-  { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Management", "Internal"] },
   { name: "Admin", href: "/admin", icon: Settings, roles: ["Management"] },
 ]
 
 export function Navigation() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const { userRole, setUserRole } = useUserRole()
+  const { userRole, user, isLoggedIn, logout } = useUserRole()
+
+  const handleLogout = () => {
+    logout()
+    // Redirect to login or home page
+    window.location.href = '/login'
+  }
 
   return (
     <nav className="bg-card border-b border-border">
@@ -35,7 +39,7 @@ export function Navigation() {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-4">
-            {navigation.map((item) => {
+            {isLoggedIn && navigation.map((item) => {
               const Icon = item.icon
               if (item.roles.includes(userRole)) {
                 return (
@@ -78,14 +82,16 @@ export function Navigation() {
                 <Button variant="outline" className="ml-4 bg-transparent">
                   Role: {userRole}
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setUserRole("Law")}>Law</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUserRole("Management")}>Management</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUserRole("Internal")}>Internal</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setUserRole("Guest")}>Guest</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </div>
+            ) : (
+              <div className="ml-4">
+                <Link href="/login">
+                  <Button variant="default">
+                    Login
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -100,7 +106,7 @@ export function Navigation() {
         {isMobileMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-              {navigation.map((item) => {
+              {isLoggedIn && navigation.map((item) => {
                 const Icon = item.icon
                 if (item.roles.includes(userRole)) {
                   return (
