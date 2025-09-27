@@ -4,10 +4,11 @@ import { supabase } from '@/lib/supabase';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const contractId = parseInt(params.id);
+    const { id } = await params; // Await params first
+    const contractId = parseInt(id);
     
     if (isNaN(contractId)) {
       return NextResponse.json(
@@ -71,13 +72,13 @@ export async function PATCH(
   }
 }
 
-
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const contractId = parseInt(params.id);
+    const { id } = await params; // Await params first
+    const contractId = parseInt(id);
 
     const contract = await prisma.contract.findUnique({
       where: { id: contractId }
@@ -105,7 +106,6 @@ export async function DELETE(
     await prisma.contractValidation.deleteMany({
       where: { contractId: contractId }
     });
-
 
     await prisma.contract.delete({
       where: { id: contractId }

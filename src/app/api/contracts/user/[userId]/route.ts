@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
       uploadedAt: contract.uploadedAt.toISOString().split('T')[0],
       fileUrl: contract.fileUrl,
       contractData: contract.contractData,
-      user: contract.user
+      user: contract.user ?? null
     }))
 
     return NextResponse.json(transformedContracts)
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         parties: body.parties,
         category: body.category,
         status: body.status || 'PENDING',
-        value: body.value ? parseFloat(body.value) : null,
+        value: body.value ? parseFloat(body.value) : 0,
         startDate: new Date(body.startDate),
         endDate: new Date(body.endDate),
         fileUrl: body.fileUrl,
