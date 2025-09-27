@@ -13,7 +13,7 @@ export default function AdminPage() {
   const { userRole } = useUserRole()
   const formattedRole = formatUserRole(userRole)
 
-  if (formattedRole !== "Management") {
+  if (formattedRole !== "Internal") {
     return (
       <MainLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-4">

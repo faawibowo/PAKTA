@@ -319,20 +319,6 @@ export default function HomePage() {
                       )}
                     </div>
                   )}
-
-                  <div className="space-y-2">
-                    <Label htmlFor="role">Role</Label>
-                    <Select value={formData.role} onValueChange={(value) => setFormData({ ...formData, role: value })} required>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Law">Law Department</SelectItem>
-                        <SelectItem value="Management">Management</SelectItem>
-                        <SelectItem value="Internal">Internal User</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   
                   {error && (
                     <Alert variant="destructive">

@@ -89,21 +89,7 @@ export function LoginClient() {
                 required
               />
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={setRole} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Law">Law Department</SelectItem>
-                  <SelectItem value="Management">Management</SelectItem>
-                  <SelectItem value="Internal">Internal User</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
+        
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>

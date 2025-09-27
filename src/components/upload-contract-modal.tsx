@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Upload, FileText, Loader2 } from "lucide-react"
 import { uploadFileAndSaveContract } from '@/lib/fileService'
 import { extractTextFromFile } from "@/lib/documentParser"
+import { useUserRole } from "@/context/user-role-context"
 
 
 export function UploadContractModal() {
@@ -33,6 +34,7 @@ export function UploadContractModal() {
   const [fileName, setFileName] = useState("")
   const [uploading, setUploading] = useState(false)
   const [open, setOpen] = useState(false)
+  const { userRole, user, isLoggedIn, logout } = useUserRole()
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -64,7 +66,7 @@ export function UploadContractModal() {
         value: formData.value,
         startDate: new Date(formData.startDate),
         endDate: new Date(formData.endDate),
-        userId: 1 
+        userId: user?.id ? Number(user.id) : undefined
       })
       const text = await extractTextFromFile(formData.file);
 

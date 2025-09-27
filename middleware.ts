@@ -7,7 +7,7 @@ const roleBasedRoutes = {
   '/validation': ['Law', 'Management', 'Internal'],
   '/dashboard': ['Management', 'Internal'],
   '/vault': ['Law', 'Management', 'Internal'],
-  '/admin': ['Management'], // Changed from 'Internal' to 'Management' to match your admin page logic
+  '/admin': ['Internal'], 
 } as const
 
 // Public routes that don't require authentication

@@ -6,8 +6,46 @@ import { FileText } from "lucide-react"
 import { ContractTable } from "@/components/contract-table"
 import { UploadContractModal } from "@/components/upload-contract-modal"
 import { formatUserRole } from "@/lib/role-utils"
+import { useEffect, useState } from "react"
+
+
+
 
 export default function VaultPage() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [contracts, setContracts] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/contracts');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch contract statistics');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          setContracts(data.data);
+          
+          // Calculate stats from the contract data
+          const contractData = data.data;
+          const total = contractData.length;
+        }
+      } catch (err) {
+        console.error('Error fetching contract stats:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load statistics');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+  
   return (
     <MainLayout>
       <div className="space-y-8">
@@ -28,38 +66,7 @@ export default function VaultPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">24</div>
-              <p className="text-xs text-muted-foreground">+2 from last month</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valid Contracts</CardTitle>
-              <div className="h-3 w-3 rounded-full bg-success"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">18</div>
-              <p className="text-xs text-muted-foreground">75% validation rate</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Needs Attention</CardTitle>
-              <div className="h-3 w-3 rounded-full bg-warning"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">4</div>
-              <p className="text-xs text-muted-foreground">Expiring soon</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Critical Issues</CardTitle>
-              <div className="h-3 w-3 rounded-full bg-error"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">2</div>
-              <p className="text-xs text-muted-foreground">Require immediate action</p>
+              <div className="text-2xl font-bold">{contracts.length}</div>
             </CardContent>
           </Card>
         </div>

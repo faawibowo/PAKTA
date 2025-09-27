@@ -14,7 +14,7 @@ const navigation = [
   { name: "Validation", href: "/validation", icon: Shield, roles: ["Law", "Management", "Internal"] },
   { name: "Dashboard", href: "/dashboard", icon: BarChart3, roles: ["Management", "Internal"] },
   { name: "Vault", href: "/vault", icon: Archive, roles: ["Law", "Management", "Internal"] },
-  { name: "Admin", href: "/admin", icon: Settings, roles: ["Management"] },
+  { name: "Admin", href: "/admin", icon: Settings, roles: ["Internal"] },
 ]
 
 export function Navigation() {
