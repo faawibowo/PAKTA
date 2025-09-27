@@ -176,7 +176,7 @@ export default function HomePage() {
       {/* Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 lg:pl-30">
             <Image src='/pakta.png' height={40} width={40} alt='Pakta Logo'/>
             <span className="text-2xl font-['IBM_Plex_Mono',monospace] tracking-wider">pakta</span>
           </div>
@@ -186,7 +186,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-16">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Info */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:pl-30">
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-6xl font-bold tracking-tight">
                 Smart Contract
